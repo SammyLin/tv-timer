@@ -57,11 +57,16 @@ class GuardService : Service() {
     server = ParentServer(this, BuildConfig.PARENT_PORT) { chime.playSample() }.also { it.start() }
 
     scope.launch {
+      var wasWatching: Boolean? = null
       Store.state.collectLatest {
         overlays.render(it)
-        // 鎖起來時拿著音訊焦點(後面的影片會暫停);開始看了再還回去
+        // 鎖起來時拿著音訊焦點(後面的影片會暫停);開始看了再還回去。
+        // 只在切換時動,不然看電視時每秒的計時更新會把試聽音效停掉
         val watching = it.session?.running == true && !it.timeUp && it.pendingApproval == null
-        if (watching) chime.release() else chime.hush()
+        if (watching != wasWatching) {
+          if (watching) chime.release() else chime.hush()
+          wasWatching = watching
+        }
       }
     }
     scope.launch {
