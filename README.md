@@ -38,7 +38,7 @@ tv-timer puts the decision on the screen itself:
 | **Lock screen** | A full-screen overlay above every app; Home and Back cannot get past it. Everything works with the D-pad |
 | **Who and how long** | Up to two kids per session, quick buttons (default 30 / 60 min) and a custom duration |
 | **Countdown** | A small, half-transparent "minutes left" in the corner; it turns into a large countdown in the last minutes |
-| **Time's up** | Pauses whatever is playing behind it, plays a 10-second music-box chime, then locks |
+| **Time's up** | Pauses whatever is playing behind it, plays a soft 10-second marimba tune, then locks |
 | **Pause and resume** | TV standby pauses; the remaining minutes carry over. App updates do not interrupt a session |
 | **Daily allowance** | Per kid, per day (default 120 min, 0 = none); a session is capped at what is left |
 | **Parent phone page** | `http://TV-IP:8765/`: approve "no limit", add 15 / 30 min, stop, rename kids, change limits and PIN, test the chime |

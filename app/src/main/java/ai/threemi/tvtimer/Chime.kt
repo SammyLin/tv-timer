@@ -7,11 +7,13 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.exp
+import kotlin.math.pow
 import kotlin.math.sin
 
 /**
- * 時間到的音效:10 秒的音樂盒旋律,程式即時合成(不用放音檔)。
+ * 時間到的音效:10 秒輕快的木琴旋律,程式即時合成(不用放音檔)。
  * 播之前先搶「音訊焦點」,YouTube 之類的 App 會因此暫停,不會在鎖定畫面後面繼續出聲。
  */
 class Chime(context: Context) {
@@ -67,30 +69,46 @@ class Chime(context: Context) {
     private const val RATE = 44_100
     private const val SECONDS = 10.0
 
-    /** 「C-E-G-C」上行再下行,像音樂盒;每個音 0.42 秒,鈴聲般衰減,最後一秒淡出 */
+    /** 音量(0~1),之前 0.8 太大聲 */
+    private const val VOLUME = 0.32f
+
+    /** 旋律:相對 C5 的半音數,null 是休止;每格 0.16 秒,蹦蹦跳跳的五聲音階,一句約 2.9 秒 */
+    private val melody: List<Pair<Int?, Int>> = listOf(
+      4 to 1, 7 to 1, 12 to 1, null to 1, 9 to 1, 7 to 1, 4 to 2,
+      2 to 1, 4 to 1, 7 to 1, null to 1, 9 to 1, 12 to 1, 14 to 3, null to 2,
+    )
+    private const val BEAT = 0.16
+
+    /** 木琴音色的旋律重複到 10 秒,最後一秒淡出 */
     private val pcm: ShortArray by lazy {
-      val notes = doubleArrayOf(1046.5, 1318.5, 1568.0, 2093.0, 1568.0, 1318.5) // C6 E6 G6 C7 G6 E6
-      val step = 0.42
       val n = (RATE * SECONDS).toInt()
       val out = FloatArray(n)
       var t0 = 0.0
-      var i = 0
-      while (t0 < SECONDS - 0.3) {
-        val f = notes[i++ % notes.size]
-        val start = (t0 * RATE).toInt()
-        val len = minOf((1.6 * RATE).toInt(), n - start)
-        for (k in 0 until len) {
-          val t = k.toDouble() / RATE
-          val env = exp(-t * 3.2) * minOf(1.0, t / 0.004)
-          // 基音加一點八度泛音,聽起來比較像鈴
-          out[start + k] += (env * (0.6 * sin(2 * PI * f * t) + 0.25 * sin(2 * PI * f * 2 * t) + 0.1 * sin(2 * PI * f * 3.01 * t))).toFloat()
+      outer@ while (true) {
+        for ((note, beats) in melody) {
+          if (t0 >= SECONDS - 1.2) break@outer
+          if (note != null) {
+            val f = 523.25 * 2.0.pow(note / 12.0)
+            val start = (t0 * RATE).toInt()
+            val len = minOf((1.5 * RATE).toInt(), n - start)
+            for (k in 0 until len) {
+              val t = k.toDouble() / RATE
+              // 木琴:基音 + 很快消失的 3.93 倍、9.2 倍泛音
+              val v = minOf(1.0, t / 0.006) * (
+                exp(-t * 5) * sin(2 * PI * f * t) +
+                  0.18 * exp(-t * 14) * sin(2 * PI * f * 3.93 * t) +
+                  0.05 * exp(-t * 30) * sin(2 * PI * f * 9.2 * t))
+              out[start + k] += v.toFloat()
+            }
+          }
+          t0 += beats * BEAT
         }
-        t0 += step
       }
+      val peak = out.maxOf { abs(it) }
       val fadeFrom = n - RATE
       ShortArray(n) { k ->
         val fade = if (k > fadeFrom) (n - k).toFloat() / RATE else 1f
-        (out[k].coerceIn(-1.4f, 1.4f) / 1.4f * fade * 0.8f * Short.MAX_VALUE).toInt().toShort()
+        (out[k] / peak * fade * VOLUME * Short.MAX_VALUE).toInt().toShort()
       }
     }
   }
