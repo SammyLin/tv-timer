@@ -1,0 +1,173 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>看電視計時 · 安裝教學</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .head { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 30px; }
+  .tv .screen.settings-wrap { aspect-ratio: 1920 / 984; overflow: hidden; position: relative; }
+  .tapcount { position: absolute; right: 18px; bottom: 16px; background: var(--amber); color: var(--ink); font-weight: 800; font-size: 20px; border-radius: 999px; padding: 4px 14px; }
+  .toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: #3c4043; color: #fff; font-size: 14px; padding: 8px 16px; border-radius: 8px; white-space: nowrap; }
+  .dialog { position: absolute; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; }
+  .dialog .box { width: 78%; background: #2d2f31; border-radius: 12px; padding: 18px 20px; color: #e8eaed; font-size: 14px; line-height: 1.5; }
+  .dialog .box b { font-size: 17px; display: block; margin-bottom: 6px; }
+  .dialog .chk { display: flex; gap: 8px; align-items: center; margin: 10px 0 12px; }
+  .dialog .chk i { width: 16px; height: 16px; border: 2px solid #9aa0a6; border-radius: 3px; display: grid; place-items: center; font-style: normal; font-size: 12px; }
+  .dialog .chk i.on { background: #8ab4f8; border-color: #8ab4f8; color: #202124; }
+  .dialog .btns { display: flex; justify-content: flex-end; gap: 10px; }
+  .dialog .btns span { padding: 6px 14px; border-radius: 6px; }
+  .dialog .btns span.focus { background: #e8eaed; color: #202124; font-weight: 700; }
+  .ring { position: absolute; border: 3px solid var(--amber); border-radius: 12px; pointer-events: none; }
+  .os { display: flex; gap: 12px; }
+  .os .pill { font-size: 20px; padding: 8px 18px; }
+  .os .pill.on { background: var(--amber); color: var(--ink); }
+  .tv img.raw { aspect-ratio: auto; height: auto; object-fit: fill; }
+  .zoom { margin-top: 26px; width: 100%; border: 3px solid var(--amber); border-radius: 18px; padding: 16px 22px; background: var(--card); }
+  .callout { position: absolute; left: 0; right: 0; bottom: 8%; height: 18%; border: 3px solid var(--amber); border-radius: 8px; box-shadow: 0 0 0 2000px rgba(0,0,0,.45); }
+</style>
+<body>
+<div class="brand"><img src="assets/logo.svg">看電視計時 · 安裝教學</div>
+
+<!-- 0 開場 -->
+<section data-scene="0,3.6" style="justify-content:center;gap:28px">
+  <div class="glow" style="background:#f2b33d;top:160px"></div>
+  <div class="kicker" data-in="0,0.5">安裝教學</div>
+  <div class="h1" data-in="0.2,0.6">3 步<br>裝到電視</div>
+  <div class="sub" data-in="0.7,0.6">Sony / Google TV<br>+ 一台 Mac 或 Windows 電腦</div>
+  <div class="pill" data-in="1.2,0.6">⏱ 大約 15 分鐘</div>
+</section>
+
+<!-- 1 開發人員選項 -->
+<section data-scene="3.6,11">
+  <div class="head">
+    <div class="step" data-in="0,0.6,pop">1</div>
+    <div class="h2" data-in="0.2,0.6">打開<span class="amber">開發人員選項</span></div>
+    <div class="sub" data-in="0.5,0.6">電視:設定 → 系統 → 關於</div>
+  </div>
+  <div data-in="0.8,0.7"><div class="tv"><div class="screen settings-wrap"><div class="settings" data-fn="buildTaps">
+    <div class="crumb">設定 › 系統 › 關於</div>
+    <div class="row">型號<small>BRAVIA</small></div>
+    <div class="row">Android TV 作業系統<small>12</small></div>
+    <div class="row focus">Android TV 作業系統版本<small>連按 7 下</small></div>
+    <div class="row">法律資訊</div>
+    <div class="tapcount">按 0 下</div>
+    <div class="toast">您現在已經是開發人員了!</div>
+  </div></div></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="1.2,0.6" style="margin-top:34px">對著「版本」<b class="amber">連按 7 下</b><br>確認鍵</div>
+</section>
+
+<!-- 2 USB 偵錯 -->
+<section data-scene="11,16.4">
+  <div class="head">
+    <div class="step" data-in="0,0.6,pop">2</div>
+    <div class="h2" data-in="0.2,0.6">打開<span class="amber">USB 偵錯</span></div>
+    <div class="sub" data-in="0.5,0.6">設定 → 系統 → 開發人員選項</div>
+  </div>
+  <div data-in="0.8,0.7"><div class="tv"><div class="screen settings-wrap"><div class="settings" data-fn="usbToggle">
+    <div class="crumb">設定 › 系統 › 開發人員選項</div>
+    <div class="row">保持清醒<span class="toggle"></span></div>
+    <div class="row focus">USB 偵錯<span class="toggle"></span></div>
+    <div class="row">無線偵錯<span class="toggle"></span></div>
+  </div></div></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="1.2,0.6" style="margin-top:34px">不用接線<br>電腦是透過家裡網路連的</div>
+</section>
+
+<!-- 3 電腦貼一行 -->
+<section data-scene="16.4,26.2">
+  <div class="head">
+    <div class="step" data-in="0,0.6,pop">3</div>
+    <div class="h2" data-in="0.2,0.6">電腦<span class="amber">貼一行</span></div>
+    <div class="os" data-in="0.5,0.6"><span class="pill on">Mac 終端機</span><span class="pill">Windows PowerShell</span></div>
+  </div>
+  <div class="terminal" data-in="0.8,0.7"><div class="bar"><i></i><i></i><i></i></div><pre><span class="c-dim">$ </span><span data-type="1.4,34">curl -fsSL https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/mac.sh | bash</span>
+<span data-in="4.4,0.2,fade"><b>📺 看電視計時</b>
+要做什麼?  1) 安裝或更新 App
+請輸入 1、2 或 3:<span class="c-yellow">1</span></span>
+<span data-in="5.6,0.2,fade"><span class="c-cyan">▶ 連到電視</span>
+找到一台:<b>192.168.1.23</b>  <span class="c-dim">(按 Enter)</span></span>
+<span data-in="6.8,0.2,fade">連線中…</span></pre></div>
+  <div class="sub" data-in="2,0.6" style="margin-top:26px;font-size:22px">它會自己下載工具、<b class="amber">自己找到電視</b></div>
+</section>
+
+<!-- 4 電視按允許 -->
+<section data-scene="26.2,31.6">
+  <div class="head">
+    <div class="big-emoji" data-in="0,0.6,pop" style="font-size:64px">👀</div>
+    <div class="h2" data-in="0.2,0.6">看電視<br>按<span class="amber">「允許」</span></div>
+  </div>
+  <div data-in="0.6,0.7"><div class="tv"><div class="screen settings-wrap" style="background:#111"><img src="assets/tv-picker.png" style="opacity:.5"><div class="dialog" data-fn="allow"><div class="box">
+    <b>要允許 USB 偵錯嗎?</b>電腦的 RSA 金鑰指紋:<br><span style="color:#9aa0a6">3A:9F:…:C2</span>
+    <div class="chk"><i>✓</i>一律允許這部電腦</div>
+    <div class="btns"><span>取消</span><span class="ok">允許</span></div>
+  </div></div></div></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="1,0.6" style="margin-top:34px">勾「<b class="amber">一律允許這部電腦</b>」<br>再按「允許」</div>
+</section>
+
+<!-- 5 裝好 -->
+<section data-scene="31.6,36.4">
+  <div class="head">
+    <div class="big-emoji" data-in="0,0.6,pop" style="font-size:64px">🎉</div>
+    <div class="h2" data-in="0.2,0.6">裝好了!</div>
+  </div>
+  <div class="terminal" data-in="0.4,0.6"><div class="bar"><i></i><i></i><i></i></div><pre style="min-height:0"><span class="c-green">✓ 連上了:Sony BRAVIA 4K</span>
+<span data-in="0.9,0.2,fade" class="c-cyan">▶ 安裝 App(大約 10~30 秒)</span>
+<span data-in="1.7,0.2,fade" class="c-green">✓ 裝好了</span>
+<span data-in="2.2,0.2,fade" class="c-green">✓ 完成了!</span>
+<span data-in="2.6,0.2,fade"><b>🎉 安裝完成</b></span></pre></div>
+</section>
+
+<!-- 6 網址和密碼 -->
+<section data-scene="36.4,42">
+  <div class="head">
+    <div class="h2" data-in="0,0.6">電視最下面<br>有<span class="amber">網址和密碼</span></div>
+    <div class="sub" data-in="0.4,0.6">📸 先拍下來</div>
+  </div>
+  <div data-in="0.6,0.7"><div class="tv"><img class="raw" src="assets/tv-first-run.png"></div><div class="tv-stand"></div></div>
+  <div class="zoom" data-in="1.4,0.6,pop">
+    <div class="sub" style="font-size:18px;text-align:left">電視最下面這一行 👇</div>
+    <div style="font-size:24px;font-weight:700;margin-top:6px">爸媽手機打開</div>
+    <div class="amber" style="font-size:25px;font-weight:800;font-family:'SF Mono',Menlo,monospace">http://192.168.1.23:8765/</div>
+    <div style="font-size:24px;font-weight:700;margin-top:4px">爸媽密碼 <span class="amber" style="font-size:30px;font-weight:800">3057</span></div>
+  </div>
+  <div class="sub" data-in="2.4,0.6" style="margin-top:22px;font-size:24px">手機連家裡 Wi-Fi 打開網址<br>輸入密碼、<b class="amber">改成自己的密碼</b></div>
+</section>
+
+<!-- 7 小提示 -->
+<section data-scene="42,48.6" style="gap:18px;padding-top:150px">
+  <div class="h2" data-in="0,0.6" style="margin-bottom:16px">之後怎麼辦?</div>
+  <div class="tip" data-in="0.5,0.6,left"><span style="font-size:36px">🔄</span><div>要更新<br><b>手機按「檢查更新」</b></div></div>
+  <div class="tip" data-in="1.1,0.6,left"><span style="font-size:36px">🔑</span><div>忘記密碼<br><b>同一行指令選 2</b></div></div>
+  <div class="tip" data-in="1.7,0.6,left"><span style="font-size:36px">🧹</span><div>壞掉要移除<br><b>同一行指令選 3</b></div></div>
+</section>
+
+<!-- 8 結尾 -->
+<section data-scene="48.6,52.5" style="justify-content:center;gap:24px">
+  <div class="glow" style="background:#f2b33d;top:160px"></div>
+  <img src="assets/logo.svg" style="width:140px;border-radius:34px" data-in="0,0.7,pop">
+  <div class="h2" data-in="0.3,0.6">完整圖文教學</div>
+  <div class="sub" data-in="0.6,0.6" style="color:#f4f1ec">github.com/SammyLin/tv-timer</div>
+  <div class="pill" data-in="1,0.6">免費 · 開源 · 不用雲端</div>
+</section>
+
+<div id="progress"></div>
+<script src="engine.js"></script>
+<script>
+  window.DURATION = 52.5
+  const { clamp } = window.ease
+  // 連按 7 下:每 0.45 秒一下,按完跳出提示
+  window.buildTaps = (el, t) => {
+    const n = clamp(Math.floor((t - 1.8) / 0.45) + 1, 0, 7)
+    el.querySelector(".tapcount").textContent = `按 ${n} 下`
+    const row = el.querySelector(".row.focus")
+    const flash = t > 1.8 && t < 1.8 + 7 * 0.45 && ((t - 1.8) % 0.45) < 0.12
+    row.style.background = flash ? "#f2b33d" : ""
+    const toast = el.querySelector(".toast"); toast.style.opacity = t > 1.8 + 7 * 0.45 ? 1 : 0
+  }
+  window.usbToggle = (el, t) => { el.querySelectorAll(".toggle")[1].classList.toggle("on", t > 2.2) }
+  window.allow = (el, t) => {
+    el.querySelector(".chk i").classList.toggle("on", t > 1.8)
+    el.querySelector(".chk i").textContent = t > 1.8 ? "✓" : ""
+    el.querySelector(".ok").classList.toggle("focus", t > 2.6)
+  }
+  window.seek(Number(new URLSearchParams(location.search).get("t") ?? 0))
+</script>
+</body>

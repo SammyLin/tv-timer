@@ -1,0 +1,61 @@
+/* 短影片共用樣式:540×960 的畫面,截圖時放大 2 倍成 1080×1920 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 540px; height: 960px; overflow: hidden; background: #0e0d0c; }
+body {
+  font-family: "PingFang TC", "Noto Sans TC", system-ui, sans-serif;
+  color: #f4f1ec; -webkit-font-smoothing: antialiased;
+}
+:root { --amber: #f2b33d; --ink: #0e0d0c; --card: #1c1a18; --muted: #a8a29e; --green: #34d399; --blue: #3987e5; }
+
+[data-scene] { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 96px 40px 80px; visibility: hidden; }
+[data-in] { opacity: 0; will-change: transform, opacity; }
+
+/* 背景光暈 */
+.glow { position: absolute; width: 640px; height: 640px; border-radius: 50%; filter: blur(80px); opacity: .35; pointer-events: none; }
+
+.kicker { color: var(--amber); font-size: 22px; font-weight: 700; letter-spacing: .08em; }
+.h1 { font-size: 60px; line-height: 1.15; font-weight: 800; text-align: center; letter-spacing: -.01em; }
+.h2 { font-size: 44px; line-height: 1.2; font-weight: 800; text-align: center; }
+.sub { font-size: 26px; line-height: 1.5; color: var(--muted); text-align: center; }
+.amber { color: var(--amber); }
+.big-emoji { font-size: 96px; line-height: 1; }
+
+/* 電視外框 */
+.tv { width: 470px; border-radius: 14px; padding: 8px; background: #2a2724; box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 1px #3a3633; }
+.tv img, .tv .screen { width: 100%; display: block; border-radius: 8px; aspect-ratio: 1920 / 984; object-fit: cover; }
+.tv-stand { width: 120px; height: 14px; margin: 0 auto; background: #2a2724; border-radius: 0 0 8px 8px; }
+
+/* 手機外框 */
+.phone { width: 300px; border-radius: 40px; padding: 12px; background: #2a2724; box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 1px #3a3633; position: relative; }
+.phone .screen { border-radius: 30px; overflow: hidden; background: #0a0a0a; position: relative; }
+.phone img { width: 100%; display: block; }
+
+/* 筆電終端機 */
+.terminal { width: 470px; border-radius: 14px; background: #161514; box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 1px #34302d; overflow: hidden; }
+.terminal .bar { height: 30px; background: #24211f; display: flex; align-items: center; gap: 7px; padding: 0 12px; }
+.terminal .bar i { width: 11px; height: 11px; border-radius: 50%; background: #4a4541; }
+.terminal .bar i:nth-child(1) { background: #ff5f57; } .terminal .bar i:nth-child(2) { background: #febc2e; } .terminal .bar i:nth-child(3) { background: #28c840; }
+.terminal pre { font-family: "SF Mono", Menlo, monospace; font-size: 15px; line-height: 1.65; padding: 14px 16px 18px; white-space: pre-wrap; word-break: break-all; color: #e7e5e4; min-height: 300px; }
+.typing::after { content: "▌"; color: var(--amber); }
+.c-cyan { color: #67e8f9; font-weight: 700; } .c-green { color: #86efac; } .c-yellow { color: #fde68a; } .c-dim { color: #8a8580; }
+
+/* 電視設定畫面 mock */
+.settings { width: 100%; height: 100%; background: #1d1f22; padding: 22px 26px; font-size: 15px; }
+.settings .crumb { color: #9aa0a6; font-size: 13px; margin-bottom: 10px; }
+.settings .row { padding: 10px 14px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; color: #e8eaed; }
+.settings .row small { color: #9aa0a6; }
+.settings .row.focus { background: #e8eaed; color: #202124; }
+.settings .row.focus small { color: #5f6368; }
+.toggle { width: 38px; height: 22px; border-radius: 11px; background: #5f6368; position: relative; transition: none; }
+.toggle::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 2px; left: 2px; }
+.toggle.on { background: #8ab4f8; } .toggle.on::after { left: 18px; }
+
+.pill { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 999px; background: var(--card); font-size: 22px; font-weight: 600; }
+.step { width: 64px; height: 64px; border-radius: 50%; background: var(--amber); color: var(--ink); font-size: 34px; font-weight: 800; display: grid; place-items: center; }
+.card { background: var(--card); border-radius: 20px; padding: 22px 26px; width: 100%; }
+.tip { display: flex; gap: 16px; align-items: center; font-size: 25px; font-weight: 600; background: var(--card); border-radius: 18px; padding: 18px 22px; width: 100%; }
+.tip b { color: var(--amber); }
+
+#progress { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--amber); transform-origin: left; z-index: 10; }
+.brand { position: absolute; top: 34px; left: 40px; display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #d6d3d1; z-index: 10; }
+.brand img { width: 30px; height: 30px; border-radius: 8px; }

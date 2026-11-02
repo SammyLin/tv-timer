@@ -1,0 +1,114 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>看電視計時 · 介紹</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .tv-video { width: 100%; aspect-ratio: 1920 / 984; border-radius: 8px; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #3b82f6, #a855f7 45%, #f97316); }
+  .tv-video .sun { position: absolute; width: 90px; height: 90px; border-radius: 50%; background: #fde68a; top: 30px; left: 60px; box-shadow: 0 0 40px #fde68a; }
+  .tv-video .hill { position: absolute; width: 360px; height: 200px; border-radius: 50%; background: #16a34a; bottom: -120px; left: -40px; }
+  .tv-video .hill.b { background: #15803d; left: 200px; bottom: -130px; }
+  .chip { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,.55); color: #fff; border-radius: 12px; padding: 6px 12px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chip.warn { background: rgba(242,179,61,.92); color: #0e0d0c; font-size: 24px; padding: 8px 16px; }
+  .lock { position: absolute; inset: 0; }
+  .lock img { width: 100%; height: 100%; border-radius: 0; }
+  .swap img { position: absolute; inset: 0; width: 100%; }
+  .scroll { height: 520px; overflow: hidden; border-radius: 30px; }
+</style>
+<body>
+<div class="brand"><img src="assets/logo.svg">看電視計時</div>
+
+<!-- 1 開場 -->
+<section data-scene="0,3.6" style="justify-content:center;gap:26px">
+  <div class="glow" style="background:#f2b33d;top:120px"></div>
+  <img src="assets/logo.svg" style="width:190px;border-radius:44px" data-in="0,0.8,pop">
+  <div class="h1" data-in="0.5,0.6">看電視計時</div>
+  <div class="sub" data-in="0.9,0.6">給 Google TV 的<br>看電視計時器</div>
+</section>
+
+<!-- 2 痛點 -->
+<section data-scene="3.6,8" style="justify-content:center;gap:30px">
+  <div class="big-emoji" data-in="0,0.6,pop">📺</div>
+  <div class="h2" data-in="0.3,0.6">「再看一集<br>就好…」</div>
+  <div class="sub" data-in="1.3,0.6">結果又看了一個小時 😩</div>
+  <div class="h2 amber" data-in="2.4,0.6" style="font-size:38px">讓電視自己說<br>「時間到」</div>
+</section>
+
+<!-- 3 選人選時間 -->
+<section data-scene="8,12.8" style="gap:30px;padding-top:150px">
+  <div class="kicker" data-in="0,0.5">STEP 1</div>
+  <div class="h2" data-in="0.15,0.6">小孩自己選<br><span class="amber">誰看、看多久</span></div>
+  <div data-in="0.6,0.8,up"><div class="tv"><img src="assets/tv-resume.png" data-fn="kenBurns"></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="1.4,0.6">打開電視就先出現<br>遙控器按一按就開始</div>
+</section>
+
+<!-- 4 倒數、時間到 -->
+<section data-scene="12.8,18.2" style="gap:30px;padding-top:150px">
+  <div class="h2" data-in="0,0.6">剩 5 分鐘<span class="amber">倒數</span><br>時間到<span class="amber">自動鎖</span></div>
+  <div data-in="0.4,0.7"><div class="tv"><div class="screen tv-video" data-fn="countdown">
+    <div class="sun"></div><div class="hill"></div><div class="hill b"></div>
+    <div class="chip">剩 5 分</div>
+    <div class="lock"><img src="assets/tv-picker.png"></div>
+  </div></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="0.9,0.6" data-fn="countdownText">🎵 播一段輕快的音樂提醒<br>影片會先暫停</div>
+</section>
+
+<!-- 5 爸媽手機看狀態 -->
+<section data-scene="18.2,23.4" style="gap:26px;padding-top:140px">
+  <div class="h2" data-in="0,0.6">爸媽手機<br><span class="amber">一眼看狀態</span></div>
+  <div class="phone" data-in="0.4,0.7"><div class="screen swap" style="aspect-ratio:780/1040" data-fn="cycle">
+    <img src="assets/phone-watching.png"><img src="assets/phone-warn.png"><img src="assets/phone-paused.png"><img src="assets/phone-locked.png">
+  </div></div>
+  <div class="sub" data-in="0.8,0.6">看電視中・快到了・暫停・休息中<br>加時間、停止,都在手機上</div>
+</section>
+
+<!-- 6 不限制要同意 -->
+<section data-scene="23.4,28" style="gap:26px;padding-top:150px">
+  <div class="h2" data-in="0,0.6">想多看?<br><span class="amber">爸媽同意</span>才行</div>
+  <div data-in="0.4,0.7"><div class="tv"><img src="assets/tv-approval.png"></div><div class="tv-stand"></div></div>
+  <div class="sub" data-in="0.9,0.6">電視出現 QR code<br>爸媽手機掃一下、輸入密碼</div>
+</section>
+
+<!-- 7 觀看分析 -->
+<section data-scene="28,32.6" style="gap:24px;padding-top:140px">
+  <div class="h2" data-in="0,0.6">一個月看了多久<br><span class="amber">幾點在看</span></div>
+  <div class="phone" data-in="0.4,0.7"><div class="screen scroll"><img src="assets/analytics.png" data-fn="scrollUp"></div></div>
+</section>
+
+<!-- 8 結尾 -->
+<section data-scene="32.6,36.5" style="justify-content:center;gap:26px">
+  <div class="glow" style="background:#f2b33d;top:160px"></div>
+  <img src="assets/logo.svg" style="width:150px;border-radius:36px" data-in="0,0.7,pop">
+  <div class="h1" data-in="0.3,0.6">看電視計時</div>
+  <div class="pill" data-in="0.7,0.6">免費 · 開源 · 不用雲端</div>
+  <div class="sub" data-in="1.1,0.6" style="color:#f4f1ec">github.com/SammyLin/tv-timer</div>
+  <div class="sub" data-in="1.4,0.6" style="font-size:22px">安裝教學看下一支 👉</div>
+</section>
+
+<div id="progress"></div>
+<script src="engine.js"></script>
+<script>
+  window.DURATION = 36.5
+  const { clamp, easeOut } = window.ease
+  window.kenBurns = (el, t) => { el.style.transform = `scale(${1 + t * 0.012})`; el.style.transformOrigin = "30% 30%" }
+  // 影片播放中 → 右上倒數 → 最後變大 → 鎖定畫面滑下來
+  window.countdown = (el, t) => {
+    const chip = el.querySelector(".chip"), lock = el.querySelector(".lock")
+    const left = Math.max(0, 300 - Math.floor(clamp((t - 1) / 2.6) * 300))
+    const m = Math.floor(left / 60), s = String(left % 60).padStart(2, "0")
+    chip.textContent = t < 1 ? "剩 25 分" : `${m}:${s}`
+    chip.classList.toggle("warn", t >= 1)
+    const p = easeOut(clamp((t - 3.7) / 0.6))
+    lock.style.transform = `translateY(${(1 - p) * -100}%)`
+    lock.style.opacity = p > 0 ? 1 : 0
+  }
+  window.countdownText = () => {}
+  window.cycle = (el, t) => {
+    const imgs = el.querySelectorAll("img"); const per = 1.15
+    const x = Math.min((t - 0.6) / per, imgs.length - 1)
+    imgs.forEach((img, i) => { img.style.opacity = clamp(1.6 - Math.abs(x - i) * 2.2) })
+  }
+  window.scrollUp = (el, t) => { el.style.transform = `translateY(${-easeOut(clamp((t - 1) / 3)) * 380}px)` }
+  window.seek(Number(new URLSearchParams(location.search).get("t") ?? 0))
+</script>
+</body>
