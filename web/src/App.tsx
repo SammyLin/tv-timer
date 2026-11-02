@@ -6,6 +6,8 @@ import { act, getState, savedPin, type Action, type Settings, type TvState } fro
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { InstallButton } from "@/Install"
+import { AnalyticsCard } from "@/Analytics"
+import { colorOf } from "@/lib/colors"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,8 +21,6 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-/** 每個小孩固定一個色相(跟電視上的字首圓圈一樣) */
-const HUES = [200, 340, 150, 30, 100, 250]
 const initial = (n: string) => (n.length >= 2 && "小阿大老".includes(n[0]) ? n.at(-1)! : n[0])
 
 /** 手機一眼看出電視現在怎樣:每種狀態一個顏色(Tailwind 要完整 class 名稱才會打包) */
@@ -110,6 +110,7 @@ export default function App() {
             busy={busy} run={run}
           />
           <TodayCard state={state} />
+          <AnalyticsCard state={state} busy={busy} run={run} />
           <SettingsCard state={state} busy={busy === "save"} onSave={(s) => run("save", { action: "save", ...s })} onChime={() => run("chime", { action: "chime" })} />
           <InstallButton />
         </div>
@@ -250,12 +251,13 @@ function TodayCard({ state }: { state: TvState }) {
     <Card>
       <CardHeader><CardTitle>今天看了多久</CardTitle></CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {state.today.map((k, i) => {
-          const h = HUES[i % HUES.length]
+        {state.today.map((k) => {
+          // 跟觀看分析同一個顏色
+          const c = colorOf(state.config.kids, k.name)
           return (
             <div key={k.name} className="flex items-center gap-3">
               <Avatar className="size-9">
-                <AvatarFallback className="font-semibold" style={{ background: `hsl(${h} 35% 24%)`, color: `hsl(${h} 75% 82%)` }}>
+                <AvatarFallback className="font-semibold text-white" style={{ background: c }}>
                   {initial(k.name)}
                 </AvatarFallback>
               </Avatar>

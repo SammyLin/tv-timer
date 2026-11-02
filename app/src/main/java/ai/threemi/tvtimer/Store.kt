@@ -51,6 +51,7 @@ object Store {
     prefs = context.applicationContext.getSharedPreferences("tvtimer", Context.MODE_PRIVATE)
     if (!prefs.contains("pin")) prefs.edit().putString("pin", "%04d".format(Random.nextInt(10000))).apply()
     _state.value = State(loadConfig(), loadSession(), watchedToday = loadWatched(loadConfig().kids))
+    History.init(context)
   }
 
   val isSetupShown get() = prefs.getBoolean("setup_shown", false)
@@ -123,6 +124,8 @@ object Store {
     val new = f(old)
     _state.value = new
     if (old.session != new.session) saveSession(new.session)
+    // 不再計時了(停止、暫停、時間到):觀看紀錄馬上存檔
+    if (old.session?.running == true && new.session?.running != true) History.flush()
   }
 
   fun start(kids: List<String>, minutes: Int) = update {
@@ -156,6 +159,7 @@ object Store {
     var ended = false
     update { s ->
       val cur = s.session?.takeIf { it.running } ?: return@update s
+      History.add(cur.kids, cur.unlimited, elapsedMs)
       val watched = s.watchedToday.toMutableMap()
       cur.kids.forEach { k -> watched[k] = (watched[k] ?: 0) + elapsedMs }
       saveWatched(watched)

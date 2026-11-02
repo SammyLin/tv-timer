@@ -89,6 +89,7 @@ class GuardService : Service() {
     server?.stop()
     overlays.removeAll()
     chime.release()
+    History.flush()
     super.onDestroy()
   }
 

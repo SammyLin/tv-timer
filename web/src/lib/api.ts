@@ -26,8 +26,14 @@ export type Settings = {
   newPin?: string
 }
 
+/** 每天的觀看紀錄(GET /api/history);時間都是秒,kids 的 key "" 是沒選人的「全家」 */
+export type HistoryDay = { date: string; kids: Record<string, number>; unlimited: number; hours: number[] }
+export type History = { retentionDays: number; retentionChoices: number[]; today: string; kids: string[]; days: HistoryDay[] }
+
 export type Action =
   | { action: "check" | "approve" | "deny" | "stop" | "unlimited" | "chime" }
+  | { action: "history-clear"; date?: string }
+  | { action: "retention"; days: number }
   | { action: "add"; minutes: number }
   | ({ action: "save" } & Settings)
 
@@ -35,6 +41,12 @@ export type ActResult = { ok: boolean; message: string; state: TvState }
 
 export async function getState(): Promise<TvState> {
   const r = await fetch("/api/state", { cache: "no-store" })
+  if (!r.ok) throw new Error(String(r.status))
+  return r.json()
+}
+
+export async function getHistory(): Promise<History> {
+  const r = await fetch("/api/history", { cache: "no-store" })
   if (!r.ok) throw new Error(String(r.status))
   return r.json()
 }

@@ -42,6 +42,7 @@ tv-timer puts the decision on the screen itself:
 | **Pause and resume** | TV standby pauses; the remaining minutes carry over. App updates do not interrupt a session |
 | **Daily allowance** | Per kid, per day (default 120 min, 0 = none); a session is capped at what is left |
 | **Parent phone page** | `http://TV-IP:8765/`: approve "no limit", add 15 / 30 min, stop, rename kids, change limits and PIN, test the chime |
+| **Viewing history** | The phone page charts the last 7 / 30 days: minutes per kid per day (with the daily limit), totals and averages, the hours the TV is on, and how much was "no limit". Retention is configurable (default 30 days, older days are deleted); delete one day or everything |
 | **Install on phone** | The parent page is a PWA: add it to the home screen and it opens full screen like an app |
 | **PIN protected** | Every action needs the parent PIN; 5 wrong tries lock it for 10 minutes. The phone remembers the PIN after the first success |
 | **No cloud** | Everything runs on the TV. The TV serves the parent page itself; no account, no server |
@@ -65,7 +66,7 @@ tv-timer puts the decision on the screen itself:
 | `app/` | The Android TV app (Kotlin, Jetpack Compose). A foreground service keeps time, draws the lock overlay and runs a small HTTP server |
 | `web/` | The parent phone page (React, Vite, Tailwind, shadcn/ui), built into `app/src/main/assets/web` (the build output is committed) |
 
-API on the TV: `GET /api/state`, `POST /api/do` (JSON, needs the parent PIN).
+API on the TV: `GET /api/state`, `GET /api/history`, `POST /api/do` (JSON, needs the parent PIN).
 
 ## Install on a TV
 
