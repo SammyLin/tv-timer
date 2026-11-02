@@ -102,7 +102,7 @@ try {
 
   Write-Host ""
   Write-Host "🎉 安裝完成" -ForegroundColor White
-  Write-Host "電視上現在會顯示「爸媽手機網址」和「初始爸媽密碼」,請拍照或記下來。"
+  Write-Host "電視畫面最下面一行有「爸媽手機網址」和「初始爸媽密碼」,請拍照或記下來。"
   Write-Host "用手機(連家裡 Wi-Fi)打開那個網址,第一次進去請先改掉密碼。"
   Write-Host "之後要更新 App,再貼一次同一行安裝指令就好。"
   Write-Host ""

@@ -211,6 +211,14 @@ private fun Picker(s: State) {
       Spacer(Modifier.weight(1f))
       Primary(if (unlimited) "請爸媽同意" else "開始", enabled = ready, width = 210.dp) { start() }
     }
+    // 剛裝好時主畫面會被這個鎖定畫面蓋住,所以手機網址和初始密碼也放這裡;爸媽改掉密碼後就不顯示
+    if (!Store.isSetupShown) {
+      Spacer(Modifier.height(14.dp))
+      Text(
+        "爸媽手機打開 http://${Net.localIp() ?: "電視IP"}:${BuildConfig.PARENT_PORT}/  ·  初始爸媽密碼 ${cfg.pin}(在手機改掉後就不顯示)",
+        style = Small.copy(color = T.Faint),
+      )
+    }
     Spacer(Modifier.weight(0.5f))
   }
 }
