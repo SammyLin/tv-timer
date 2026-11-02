@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { BellRing, ChevronDown, Infinity, Lock, Plus, Square } from "lucide-react"
+import { AlarmClock, BellRing, ChevronDown, Hand, Hourglass, Infinity, Lock, Moon, Pause, Plus, Square, Tv, type LucideIcon } from "lucide-react"
 
 import { act, getState, savedPin, type Action, type Settings, type TvState } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { InstallButton } from "@/Install"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
@@ -24,14 +23,20 @@ import {
 const HUES = [200, 340, 150, 30, 100, 250]
 const initial = (n: string) => (n.length >= 2 && "小阿大老".includes(n[0]) ? n.at(-1)! : n[0])
 
-const STATUS: Record<TvState["status"], { badge: string; tone: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { badge: "等你同意", tone: "default" },
-  watching: { badge: "計時中", tone: "secondary" },
-  unlimited: { badge: "不限制", tone: "secondary" },
-  paused: { badge: "暫停", tone: "outline" },
-  timeup: { badge: "時間到", tone: "outline" },
-  locked: { badge: "鎖定", tone: "outline" },
+/** 手機一眼看出電視現在怎樣:每種狀態一個顏色(Tailwind 要完整 class 名稱才會打包) */
+type Phase = TvState["status"] | "warn"
+const PHASE: Record<Phase, { label: string; icon: LucideIcon; live: boolean; text: string; box: string; card: string; dot: string }> = {
+  watching: { label: "看電視中", icon: Tv, live: true, text: "text-emerald-400", box: "bg-emerald-500/15 border-emerald-500/40", card: "border-emerald-500/50", dot: "bg-emerald-400" },
+  warn: { label: "快到了", icon: Hourglass, live: true, text: "text-orange-400", box: "bg-orange-500/15 border-orange-500/40", card: "border-orange-500/50", dot: "bg-orange-400" },
+  unlimited: { label: "不限時間", icon: Infinity, live: true, text: "text-sky-400", box: "bg-sky-500/15 border-sky-500/40", card: "border-sky-500/50", dot: "bg-sky-400" },
+  paused: { label: "暫停中", icon: Pause, live: false, text: "text-yellow-300", box: "bg-yellow-400/15 border-yellow-400/40", card: "border-yellow-400/50", dot: "bg-yellow-300" },
+  locked: { label: "休息中", icon: Moon, live: false, text: "text-zinc-300", box: "bg-zinc-500/15 border-zinc-500/40", card: "border-zinc-600", dot: "bg-zinc-400" },
+  timeup: { label: "時間到", icon: AlarmClock, live: false, text: "text-red-400", box: "bg-red-500/15 border-red-500/40", card: "border-red-500/50", dot: "bg-red-400" },
+  pending: { label: "等你同意", icon: Hand, live: true, text: "text-violet-300", box: "bg-violet-500/15 border-violet-500/40", card: "border-violet-500/50", dot: "bg-violet-300" },
 }
+
+const phaseOf = (s: TvState): Phase =>
+  s.status === "watching" && s.remainingMinutes != null && s.remainingMinutes <= s.config.warnMinutes ? "warn" : s.status
 
 function title(s: TvState) {
   const who = s.who.join("、")
@@ -133,7 +138,8 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
   remembered: boolean; forget: () => void; busy: string | null; run: RunFn
 }) {
   const s = state.status
-  const meta = STATUS[s]
+  const p = PHASE[phaseOf(state)]
+  const showLeft = state.remainingMinutes != null && s !== "pending" && s !== "timeup"
   const verb = s === "watching" ? "多" : "開放"
   const canStop = s !== "locked"
   const sub = {
@@ -145,15 +151,27 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
   }[s]
 
   return (
-    <Card>
+    <Card className={cn("border-2 transition-colors", p.card)}>
       <CardHeader>
-        <div><Badge variant={meta.tone}>{meta.badge}</Badge></div>
-        <CardTitle className="text-2xl leading-tight">{title(state)}</CardTitle>
-        {state.remainingMinutes != null && s !== "pending" && s !== "timeup" ? (
-          <p className="flex items-baseline gap-2 text-muted-foreground">
-            還剩 <span className="text-4xl font-semibold tabular-nums text-amber-400">{state.remainingMinutes}</span> 分
-          </p>
-        ) : sub && <CardDescription>{sub}</CardDescription>}
+        <div className={cn("flex items-center justify-between gap-3 rounded-xl border px-4 py-3", p.box)}>
+          <div className={cn("flex items-center gap-2.5", p.text)}>
+            <p.icon className="size-7 shrink-0" />
+            <span className="text-2xl font-bold">{p.label}</span>
+            {p.live && (
+              <span className="relative ml-1 flex size-2.5">
+                <span className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-75", p.dot)} />
+                <span className={cn("relative inline-flex size-2.5 rounded-full", p.dot)} />
+              </span>
+            )}
+          </div>
+          {showLeft && (
+            <p className="flex shrink-0 items-baseline gap-1 text-muted-foreground">
+              還剩 <span className={cn("text-4xl font-bold tabular-nums", p.text)}>{state.remainingMinutes}</span> 分
+            </p>
+          )}
+        </div>
+        <CardTitle className="pt-1 text-xl leading-tight">{title(state)}</CardTitle>
+        {sub && <CardDescription>{sub}</CardDescription>}
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
