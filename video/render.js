@@ -43,7 +43,9 @@ const out = path.join(dir, "out"); fs.mkdirSync(out, { recursive: true })
       filters.push(`[${i + 2}:a]atrim=0:${c.dur},asetpts=PTS-STARTPTS,afade=t=out:st=${c.dur - fade}:d=${fade},` +
         `volume=${c.vol ?? 1},aformat=sample_rates=44100:channel_layouts=stereo,adelay=${ms}|${ms}[c${i}]`)
     })
-    filters.push(`[1:a]${clips.map((_, i) => `[c${i}]`).join("")}amix=inputs=${clips.length + 1}:duration=first:normalize=0[a]`)
+    filters.push(`[1:a]${clips.map((_, i) => `[c${i}]`).join("")}amix=inputs=${clips.length + 1}:duration=first:normalize=0,` +
+      // 有聲音的影片把音量拉到短影片平台常見的 -16 LUFS
+      (clips.length ? "loudnorm=I=-16:TP=-1.5:LRA=11," : "") + "aresample=44100[a]")
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...inputs,
       "-filter_complex", filters.join(";"), "-map", "0:v", "-map", "[a]", "-t", String(dur),
       "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-preset", "slow", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart",

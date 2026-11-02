@@ -1,7 +1,7 @@
 // 短影片的動畫引擎:畫面完全由時間 t 決定(seek(t)),render.js 一格一格截圖再用 ffmpeg 接起來。
 //
 //  <section data-scene="開始秒,結束秒">        整段淡入淡出
-//    <div data-in="延遲秒,長度秒,種類">          進場:up / down / left / right / pop / fade / zoom
+//    <div data-in="延遲秒,長度秒,種類">          進場:up / down / left / right / pop / fade / zoom / blur
 //    <div data-out="延遲秒,長度秒">             (相對場景開始)淡出
 //    <span data-type="延遲秒,每秒幾字">文字</span> 打字效果
 //    <div data-fn="函式名">                     自訂:window[函式名](el, 場景內秒數)
@@ -36,6 +36,8 @@ window.seek = (t) => {
       if (type === "right") tf = `translateX(${-(1 - p) * 120}px)`
       if (type === "pop") tf = `scale(${0.4 + 0.6 * easeBack(raw)})`
       if (type === "zoom") tf = `scale(${1.25 - 0.25 * p})`
+      if (type === "blur") tf = `translateY(${(1 - p) * 24}px) scale(${1.06 - 0.06 * p})`
+      el.style.filter = type === "blur" && raw < 1 ? `blur(${(1 - p) * 14}px)` : ""
       el.style.transform = tf
       el.style.opacity = raw
     }

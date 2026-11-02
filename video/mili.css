@@ -1,0 +1,97 @@
+/* 教學短影片:米粒學堂風格(白卡片、薄荷綠、圓體大字、3D 立體按鈕、小電插圖)540×960,截圖放大 2 倍 */
+@font-face { font-family: "Huninn"; src: url("assets/fonts/jf-openhuninn.ttf"); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 540px; height: 960px; overflow: hidden; background: #F4FAF7; }
+body { font-family: "Huninn", "PingFang TC", sans-serif; color: #1D2220; -webkit-font-smoothing: antialiased; }
+:root {
+  --green: #1A9B78; --deep: #0F7F64; --bright: #24B38A; --mint: #E3F4EC; --page: #F4FAF7;
+  --text: #1D2220; --muted: #5D6663; --line: #E4E8E5;
+  --shadow: 0 6px 18px rgba(15,127,100,.12), 0 2px 4px rgba(15,127,100,.06);
+}
+
+/* 背景:上方客廳插圖,往下淡成淺薄荷白 */
+#bg { position: absolute; inset: 0; }
+#bg img { position: absolute; top: 0; left: 0; width: 100%; height: 62%; object-fit: cover; object-position: 50% 30%; }
+#bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(244,250,247,.15) 0%, rgba(244,250,247,.55) 30%, #F4FAF7 58%); }
+
+[data-scene] { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 96px 30px 220px; visibility: hidden; }
+[data-in] { opacity: 0; will-change: transform, opacity, filter; }
+
+.h1 { font-size: 66px; line-height: 1.12; text-align: center; color: var(--text); text-shadow: 0 2px 0 rgba(255,255,255,.9); }
+.h2 { font-size: 46px; line-height: 1.2; text-align: center; color: var(--text); text-shadow: 0 2px 0 rgba(255,255,255,.9); }
+.green { color: var(--green); }
+.sub { font-size: 24px; line-height: 1.5; color: var(--muted); text-align: center; }
+
+.card { background: #fff; border-radius: 24px; box-shadow: var(--shadow); }
+.sticker { display: inline-flex; align-items: center; gap: 8px; background: #fff; border-radius: 22px; padding: 9px 18px; box-shadow: var(--shadow); font-size: 21px; color: var(--text); }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px; background: var(--mint); color: var(--deep); font-size: 21px; }
+
+/* 步驟徽章:光澤漸層圓 + 白字(像米粒的科目圖示) */
+.badge { width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 40px; position: relative; overflow: hidden; }
+.badge::after { content: ""; position: absolute; inset: 0 0 50% 0; background: linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,0)); }
+.b-blue { background: linear-gradient(#5FB2FF, #2F74EA); box-shadow: 0 6px 14px rgba(47,116,234,.3); }
+.b-pink { background: linear-gradient(#FF7D93, #EC4562); box-shadow: 0 6px 14px rgba(236,69,98,.3); }
+.b-green { background: linear-gradient(#4FD08A, #1E9A55); box-shadow: 0 6px 14px rgba(30,154,85,.3); }
+.steprow { display: flex; align-items: center; gap: 14px; }
+.steprow .label { font-size: 26px; color: var(--muted); }
+
+/* 3D 立體按鈕(按下去會往下沉) */
+.btn3d { display: inline-grid; place-items: center; min-width: 150px; height: 58px; padding: 0 26px; border-radius: 29px; color: #fff; font-size: 26px; letter-spacing: 1px;
+  background: linear-gradient(rgba(255,255,255,.18), rgba(255,255,255,0) 60%), #16A07B; box-shadow: 0 5px 0 #0C6650; transform: translateY(0); }
+.btn3d.down { transform: translateY(4px); box-shadow: 0 1px 0 #0C6650; }
+.key3d { display: inline-grid; place-items: center; height: 48px; padding: 0 18px; border-radius: 14px; background: #fff; border: 1.5px solid var(--line); box-shadow: 0 4px 0 #E2DED5; font-size: 20px; color: var(--text); font-family: "SF Mono", Menlo, monospace; }
+.key3d.down { transform: translateY(3px); box-shadow: 0 1px 0 #E2DED5; }
+
+/* 小電 */
+.bot { position: absolute; width: 190px; z-index: 6; filter: drop-shadow(0 12px 16px rgba(15,127,100,.18)); }
+
+/* 電視外框(白色機身) */
+.tv { width: 460px; border-radius: 18px; padding: 9px; background: #fff; box-shadow: var(--shadow); }
+.tv img, .tv .screen { width: 100%; display: block; border-radius: 10px; }
+.tv .screen { aspect-ratio: 16 / 9; overflow: hidden; position: relative; }
+.tv-stand { width: 110px; height: 12px; margin: 0 auto; background: #fff; border-radius: 0 0 8px 8px; box-shadow: var(--shadow); }
+
+/* 電視設定畫面 mock */
+.settings { width: 100%; height: 100%; background: #1d1f22; padding: 20px 24px; font-family: "PingFang TC", sans-serif; font-size: 15px; }
+.settings .crumb { color: #9aa0a6; font-size: 13px; margin-bottom: 10px; }
+.settings .row { padding: 10px 14px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; color: #e8eaed; }
+.settings .row small { color: #9aa0a6; }
+.settings .row.focus { background: #e8eaed; color: #202124; }
+.toggle { width: 38px; height: 22px; border-radius: 11px; background: #5f6368; position: relative; }
+.toggle::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 2px; left: 2px; }
+.toggle.on { background: #8ab4f8; } .toggle.on::after { left: 18px; }
+.tapcount { position: absolute; right: 14px; bottom: 12px; background: #F5B301; color: #1D2220; font-family: "Huninn"; font-size: 22px; border-radius: 999px; padding: 3px 14px; box-shadow: 0 3px 0 #C98500; }
+.toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); background: #3c4043; color: #fff; font-size: 14px; padding: 8px 16px; border-radius: 8px; white-space: nowrap; }
+
+/* 終端機:白卡片裡的深色視窗 */
+.terminal { width: 470px; border-radius: 20px; background: #1E2422; box-shadow: var(--shadow); overflow: hidden; border: 6px solid #fff; }
+.terminal .bar { height: 28px; background: #2A312E; display: flex; align-items: center; gap: 7px; padding: 0 12px; }
+.terminal .bar i { width: 11px; height: 11px; border-radius: 50%; }
+.terminal .bar i:nth-child(1) { background: #ff5f57; } .terminal .bar i:nth-child(2) { background: #febc2e; } .terminal .bar i:nth-child(3) { background: #28c840; }
+.terminal pre { font-family: "SF Mono", Menlo, monospace; font-size: 15px; line-height: 1.65; padding: 14px 16px 16px; white-space: pre-wrap; word-break: break-all; color: #E9F5EF; }
+.typing::after { content: "▌"; color: #4FD08A; }
+.c-green { color: #5FD88F; } .c-cyan { color: #6AB8FF; font-weight: 700; } .c-pink { color: #FF7C87; } .c-dim { color: #7D8A85; }
+
+/* 對話框 mock */
+.dialog { position: absolute; inset: 0; background: rgba(0,0,0,.5); display: grid; place-items: center; font-family: "PingFang TC", sans-serif; }
+.dialog .box { width: 76%; background: #2d2f31; border-radius: 12px; padding: 16px 18px; color: #e8eaed; font-size: 14px; line-height: 1.5; }
+.dialog .box b { font-size: 17px; display: block; margin-bottom: 4px; }
+.dialog .chk { display: flex; gap: 8px; align-items: center; margin: 10px 0 12px; }
+.dialog .chk i { width: 16px; height: 16px; border: 2px solid #9aa0a6; border-radius: 3px; display: grid; place-items: center; font-style: normal; font-size: 12px; }
+.dialog .chk i.on { background: #8ab4f8; border-color: #8ab4f8; color: #202124; }
+.dialog .btns { display: flex; justify-content: flex-end; gap: 10px; }
+.dialog .btns span { padding: 6px 14px; border-radius: 6px; }
+.dialog .btns span.focus { background: #e8eaed; color: #202124; font-weight: 700; }
+
+/* 字幕:白色對話泡泡,唸到哪綠到哪 */
+#caption { position: absolute; left: 24px; right: 24px; bottom: 60px; min-height: 118px; padding: 16px 22px; border-radius: 26px; background: #fff; box-shadow: var(--shadow); font-size: 29px; line-height: 1.45; text-align: center; z-index: 20; display: grid; place-items: center; }
+#caption .done { color: var(--text); } #caption .todo { color: #B7C2BD; } #caption .now { color: var(--green); }
+
+.brand { position: absolute; top: 28px; left: 28px; display: flex; align-items: center; gap: 10px; font-size: 21px; color: var(--text); z-index: 20; background: rgba(255,255,255,.85); padding: 6px 14px 6px 6px; border-radius: 999px; box-shadow: var(--shadow); }
+.brand img { width: 32px; height: 32px; border-radius: 9px; }
+#steps { position: absolute; top: 34px; right: 28px; display: flex; gap: 6px; z-index: 20; background: rgba(255,255,255,.85); padding: 9px 12px; border-radius: 999px; box-shadow: var(--shadow); }
+#steps i { width: 9px; height: 9px; border-radius: 50%; background: #D5DED9; }
+#steps i.on { background: var(--green); width: 22px; border-radius: 5px; }
+#progress { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(90deg, #24B38A, #0F7F64); transform-origin: left; z-index: 20; }
+
+.confetti { position: absolute; width: 11px; height: 16px; border-radius: 3px; z-index: 5; }

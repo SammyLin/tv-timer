@@ -145,7 +145,8 @@ export default function App() {
         </div>
       )}
       <PinDialog ask={ask} onClose={() => setAsk(null)} onSubmit={(typed) => { const x = ask; setAsk(null); if (x) run(x.key, x.a, typed) }} />
-      <Toaster position="top-center" theme="dark" richColors />
+      <Toaster position="top-center" theme="dark" richColors
+        offset={{ top: "calc(env(safe-area-inset-top) + 12px)" }} mobileOffset={{ top: "calc(env(safe-area-inset-top) + 12px)" }} />
     </div>
   )
 }

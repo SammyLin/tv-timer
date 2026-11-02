@@ -1,0 +1,9 @@
+Character design: "小電" (Little TV), the mascot of a Taiwanese family app that helps kids keep TV time healthy. It is a NEW character (a television, NOT a rice grain), but it must be rendered in exactly the same premium soft 3D style as the attached reference images of another mascot: cute vinyl toy / Pixar-style clay, smooth subsurface lighting, glossy highlights, soft studio light from upper left, pastel and clean.
+
+Little TV is a chubby, rounded, slightly squashy retro TV set. Body: soft glossy mint-teal (#3CC39B to #1A9B78), very rounded corners like a soft cushion. The screen is its face: a glossy cream-white screen with a thin rounded bezel, showing big round glossy black eyes with white highlights, small rosy pink blush cheeks and a small cute mouth. Two short antennae on top with round glossy golden-yellow (#F5B301) ball tips. A small round golden-yellow dial knob on the lower right of the body that looks like a tiny clock face. Two tiny stubby rounded cream-white feet below, and two small round cream-white nub hands on short arms.
+
+Strict output rules:
+- Single character only, centered, full body visible with generous empty margin on all sides, nothing cropped.
+- Background must be a completely flat, uniform, pure chroma green (#00FF00) with no gradient, no floor, no cast shadow, no reflection, no vignette. Do not use pure green anywhere on the character.
+- No text, no letters, no numbers, no watermark, no signature, no border, no frame.
+- Exactly two small hands and two small feet; no extra limbs.
