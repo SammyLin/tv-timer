@@ -28,14 +28,14 @@ export function KidLimitDialog({ state, kid, busy, onClose, onSave }: {
   const row = state.today.find((k) => k.name === kid)
   const o = row?.override
   const [mode, setMode] = useState<Mode>("default")
-  const [minutes, setMinutes] = useState("60")
+  const [minutes, setMinutes] = useState("")
   const [until, setUntil] = useState<Until>("week")
   const [date, setDate] = useState(thisSunday())
 
   // 打開時帶入目前的設定
   useEffect(() => {
     if (!kid) return
-    if (!o) { setMode("default"); setUntil("week"); setDate(thisSunday()); return }
+    if (!o) { setMode("default"); setMinutes(""); setUntil("week"); setDate(thisSunday()); return }
     setMode(o.minutes === 0 ? "none" : o.minutes < 0 ? "unlimited" : "custom")
     if (o.minutes > 0) setMinutes(String(o.minutes))
     if (!o.until) setUntil("always")
@@ -45,7 +45,8 @@ export function KidLimitDialog({ state, kid, busy, onClose, onSave }: {
   const def = state.config.dailyLimit
   const save = () => {
     if (mode === "default") return onSave(null)
-    const m = mode === "none" ? 0 : mode === "unlimited" ? -1 : Math.max(1, Math.min(1440, Number(minutes) || 0))
+    // 自訂打 0 就是不能看
+    const m = mode === "none" ? 0 : mode === "unlimited" ? -1 : Math.max(0, Math.min(1440, Number(minutes.replace(/[^\d]/g, "")) || 0))
     const u = until === "always" ? undefined : until === "today" ? ymd(new Date()) : until === "week" ? thisSunday() : date
     onSave(m, u)
   }
@@ -87,8 +88,9 @@ export function KidLimitDialog({ state, kid, busy, onClose, onSave }: {
         {mode === "custom" && (
           <label className="flex items-center gap-2">
             每天
-            <Input value={minutes} onChange={(e) => setMinutes(e.target.value)} inputMode="numeric" className="h-11 w-24 text-center text-lg" />
-            分
+            <Input autoFocus value={minutes} onChange={(e) => setMinutes(e.target.value)} inputMode="numeric" placeholder="0"
+              className="h-11 w-24 text-center text-lg" />
+            分<span className="text-xs text-muted-foreground">(0 = 不能看)</span>
           </label>
         )}
         {mode !== "default" && (
@@ -104,7 +106,7 @@ export function KidLimitDialog({ state, kid, busy, onClose, onSave }: {
           </div>
         )}
         <DialogFooter>
-          <Button size="lg" className="h-12 w-full" disabled={!!busy} onClick={save}>儲存</Button>
+          <Button size="lg" className="h-12 w-full" disabled={!!busy || (mode === "custom" && minutes.trim() === "")} onClick={save}>儲存</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

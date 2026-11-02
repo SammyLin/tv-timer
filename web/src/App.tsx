@@ -304,7 +304,9 @@ function TodayCard({ state, busy, run }: { state: TvState; busy: string | null; 
                   ? <p className="mt-1 text-sm font-medium text-red-400">暫停看電視{k.override?.until && `,到 ${shortDate(k.override.until)}`}</p>
                   : limit > 0 && <Progress value={Math.min(100, (k.minutes * 100) / limit)} className="mt-2 h-1.5 [&>*]:bg-amber-400" />}
                 {k.override && k.limit !== 0 && (
-                  <p className="mt-1 text-xs text-muted-foreground">個別設定{k.override.until && `,到 ${shortDate(k.override.until)}`}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    個別設定:{k.override.minutes < 0 ? "不限時間" : `每天 ${k.override.minutes} 分`}{k.override.until && `,到 ${shortDate(k.override.until)}`}
+                  </p>
                 )}
               </div>
               <Button variant="ghost" size="sm" className="h-10 shrink-0 px-2 text-muted-foreground" onClick={() => setEditing(k.name)}>調整</Button>
