@@ -151,7 +151,9 @@ class ParentServer(private val context: Context, private val port: Int, private 
         .put("presets", JSONArray(c.presets))
         .put("customMinutes", c.customMinutes)
         .put("dailyLimit", c.dailyLimit)
-        .put("warnMinutes", c.warnMinutes))
+        .put("warnMinutes", c.warnMinutes)
+        .put("theme", c.theme))
+      .put("themes", Theme.toJson())
       .put("version", BuildConfig.VERSION_NAME)
       .put("update", Updater.status.value.toJson())
       .put("updatedAt", LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))
@@ -186,6 +188,12 @@ class ParentServer(private val context: Context, private val port: Int, private 
           Store.addMinutes(min); "加了 $min 分鐘"
         }
         "stop" -> { Store.stop(); "已停止,電視回到選人畫面" }
+        "theme" -> {
+          val id = f.optString("theme")
+          if (!Theme.isValid(id)) return@onMain "沒有這個配色"
+          Store.saveConfig(s.config.copy(theme = id)); Theme.apply(id)
+          "電視換成「${Theme.current.name}」配色了"
+        }
         "update-install" -> Updater.install(context)
         "history-clear" -> {
           val date = f.optString("date").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }

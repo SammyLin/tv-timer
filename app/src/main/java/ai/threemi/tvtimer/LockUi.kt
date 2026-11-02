@@ -66,22 +66,27 @@ import java.time.format.DateTimeFormatter
  * 字級是網頁規格放大約 1.5 倍,給沙發距離看的電視用。
  */
 object T {
-  val Ground = Color(0xFF0E0D0C)
-  val Surface = Color(0xFF181716)
-  val Raised = Color(0xFF2A2826)
-  val Lit = Color(0xFF3A3735)
-  val Text = Color(0xFFFFFFFF)
-  val Muted = Color(0xFFB4B4B4)
-  val Faint = Color(0xFF949494)
-  val Amber = Color(0xFFF2B33D)
-  val Ink = Color(0xFF0E0D0C)
+  // 顏色跟著爸媽選的配色(Theme.current)走,換配色時畫面會自己重畫
+  private val p get() = Theme.current
+  val Ground get() = p.ground
+  val Surface get() = p.surface
+  val Raised get() = p.raised
+  val Lit get() = p.lit
+  val Text get() = p.text
+  val Muted get() = p.muted
+  val Faint get() = p.faint
+  /** 時間數字的強調色(暖黑配色是琥珀色,名字沿用) */
+  val Amber get() = p.accent
+  val Ink get() = p.ink
+  /** 反白(選到)時進度條的底 */
+  val InvertedTrack get() = if (p.light) Color(0xFF55524E) else Color(0xFFDDDDDD)
   val Card = RoundedCornerShape(20.dp)
   val Pill = RoundedCornerShape(999.dp)
 
-  /** 每個小孩一個色相,彼此差 60 度以上;避開紫色 */
+  /** 每個小孩一個色相,彼此差 60 度以上;避開紫色。亮色配色用淺底深字 */
   private val hues = floatArrayOf(200f, 340f, 150f, 30f, 100f, 250f)
-  fun kidBg(i: Int) = Color.hsl(hues[i % hues.size], 0.35f, 0.24f)
-  fun kidInk(i: Int) = Color.hsl(hues[i % hues.size], 0.75f, 0.82f)
+  fun kidBg(i: Int) = if (p.light) Color.hsl(hues[i % hues.size], 0.6f, 0.86f) else Color.hsl(hues[i % hues.size], 0.35f, 0.24f)
+  fun kidInk(i: Int) = if (p.light) Color.hsl(hues[i % hues.size], 0.55f, 0.3f) else Color.hsl(hues[i % hues.size], 0.75f, 0.82f)
 }
 
 /** 電視四周留安全邊(有些電視會裁掉邊緣) */
@@ -268,7 +273,7 @@ private fun KidCard(
 /** 今天剩下的額度:琥珀色是還能看的部分 */
 @Composable
 private fun Allowance(fraction: Float, inverted: Boolean) {
-  Box(Modifier.fillMaxWidth().height(6.dp).clip(T.Pill).background(if (inverted) Color(0xFFDDDDDD) else T.Raised)) {
+  Box(Modifier.fillMaxWidth().height(6.dp).clip(T.Pill).background(if (inverted) T.InvertedTrack else T.Raised)) {
     Box(Modifier.fillMaxWidth(fraction.coerceIn(0f, 1f)).fillMaxHeight().clip(T.Pill).background(if (inverted) T.Ink else T.Amber))
   }
 }
@@ -378,30 +383,32 @@ fun CountdownChip() {
   val ms = s.session?.remainingMs ?: 0
   val sec = (ms / 1000).toInt()
   val urgent = ms <= s.config.warnMinutes * 60_000L
+  // 疊在影片上:亮色配色的淺底在暗畫面上看不清楚,改用暖黑那組深色
+  val c = Theme.current.let { if (it.light) Theme.ALL.first() else it }
   Row(
     // 整塊 50% 透明、字很小,不擋畫面
-    Modifier.alpha(0.5f).clip(RoundedCornerShape(10.dp)).background(T.Surface).padding(horizontal = if (urgent) 12.dp else 9.dp, vertical = if (urgent) 7.dp else 4.dp),
+    Modifier.alpha(0.5f).clip(RoundedCornerShape(10.dp)).background(c.surface).padding(horizontal = if (urgent) 12.dp else 9.dp, vertical = if (urgent) 7.dp else 4.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     if (urgent) {
-      Text("還剩", style = Body.copy(color = T.Muted, fontSize = 10.sp))
+      Text("還剩", style = Body.copy(color = c.muted, fontSize = 10.sp))
       Spacer(Modifier.width(6.dp))
-      Text("%d:%02d".format(sec / 60, sec % 60), style = Figure.copy(fontSize = 17.sp))
+      Text("%d:%02d".format(sec / 60, sec % 60), style = Figure.copy(color = c.accent, fontSize = 17.sp))
     } else {
       // 平常小小的、灰色,不搶畫面
-      Text("剩 ${mins(ms)} 分", style = Small.copy(color = T.Muted, fontSize = 9.sp, fontFeatureSettings = "tnum"))
+      Text("剩 ${mins(ms)} 分", style = Small.copy(color = c.muted, fontSize = 9.sp, fontFeatureSettings = "tnum"))
     }
   }
 }
 
 // ---------------- 元件 ----------------
 
-private val H1 = TextStyle(color = T.Text, fontSize = 44.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.5).sp)
-private val Lead = TextStyle(color = T.Text, fontSize = 26.sp, lineHeight = 38.sp)
-private val Name = TextStyle(color = T.Text, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-private val Body = TextStyle(color = T.Text, fontSize = 20.sp)
-private val Small = TextStyle(color = T.Text, fontSize = 18.sp)
-private val Figure = TextStyle(color = T.Amber, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
+private val H1 get() = TextStyle(color = T.Text, fontSize = 44.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-0.5).sp)
+private val Lead get() = TextStyle(color = T.Text, fontSize = 26.sp, lineHeight = 38.sp)
+private val Name get() = TextStyle(color = T.Text, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+private val Body get() = TextStyle(color = T.Text, fontSize = 20.sp)
+private val Small get() = TextStyle(color = T.Text, fontSize = 18.sp)
+private val Figure get() = TextStyle(color = T.Amber, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
 
 @Composable
 private fun Minutes(n: Int, size: TextUnit, label: String? = null) {

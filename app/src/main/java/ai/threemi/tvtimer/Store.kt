@@ -20,6 +20,8 @@ data class Config(
   val dailyLimit: Int,
   /** 剩幾分鐘開始在角落提醒 */
   val warnMinutes: Int,
+  /** 電視畫面的配色(Theme.ALL 的 id) */
+  val theme: String = Theme.DEFAULT,
 )
 
 /** 一次看電視。running=false 表示暫停(電視關掉或按暫停),下次可以「繼續上次」 */
@@ -52,6 +54,7 @@ object Store {
     if (!prefs.contains("pin")) prefs.edit().putString("pin", "%04d".format(Random.nextInt(10000))).apply()
     _state.value = State(loadConfig(), loadSession(), watchedToday = loadWatched(loadConfig().kids))
     History.init(context)
+    Theme.apply(_state.value.config.theme)
   }
 
   val isSetupShown get() = prefs.getBoolean("setup_shown", false)
@@ -80,6 +83,7 @@ object Store {
       presets = presets,
       dailyLimit = prefs.getInt("daily", d.dailyLimit),
       warnMinutes = prefs.getInt("warn", d.warnMinutes),
+      theme = prefs.getString("theme", d.theme)!!,
     )
   }
 
@@ -91,6 +95,7 @@ object Store {
       .putString("presets", c.presets.joinToString(","))
       .putInt("daily", c.dailyLimit)
       .putInt("warn", c.warnMinutes)
+      .putString("theme", c.theme)
       .apply()
     _state.value = _state.value.copy(config = c, watchedToday = loadWatched(c.kids))
   }

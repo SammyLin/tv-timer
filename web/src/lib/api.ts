@@ -13,12 +13,17 @@ export type TvState = {
     customMinutes: number
     dailyLimit: number
     warnMinutes: number
+    theme: string
   }
+  /** 電視可以選的配色 */
+  themes: TvTheme[]
   updatedAt: string
   /** 電視上 App 的版本 */
   version: string
   update: UpdateStatus
 }
+
+export type TvTheme = { id: string; name: string; light: boolean; ground: string; surface: string; text: string; accent: string }
 
 /** 手機按「檢查更新 / 更新」後電視的進度 */
 export type UpdateStatus = {
@@ -52,6 +57,7 @@ export type Action =
   | { action: "check" | "approve" | "deny" | "stop" | "unlimited" | "chime" }
   | { action: "history-clear"; date?: string }
   | { action: "update-install" }
+  | { action: "theme"; theme: string }
   | { action: "retention"; days: number }
   | { action: "add"; minutes: number }
   | ({ action: "save" } & Settings)

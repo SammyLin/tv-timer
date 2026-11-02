@@ -10,6 +10,7 @@ import { AnalyticsCard } from "@/Analytics"
 import { UpdateBanner, UpdateCard } from "@/Update"
 import { NavMenu, usePage } from "@/Nav"
 import { AboutPage } from "@/About"
+import { ThemeCard } from "@/ThemePicker"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { colorOf } from "@/lib/colors"
 import { Button } from "@/components/ui/button"
@@ -134,6 +135,7 @@ export default function App() {
           </>}
           {page === "analytics" && <AnalyticsCard state={state} busy={busy} run={run} />}
           {page === "settings" && <>
+            <ThemeCard state={state} busy={busy} run={run} />
             <SettingsCard state={state} busy={busy === "save"} onSave={(s) => run("save", { action: "save", ...s })} onChime={() => run("chime", { action: "chime" })} />
             <InstallButton />
           </>}
