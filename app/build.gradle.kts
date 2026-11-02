@@ -12,8 +12,8 @@ android {
     minSdk = 26
     targetSdk = 35
     // 測試自己更新時可以用 -PversionCode=… -PversionName=… 打包出「新版」
-    versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 10
-    versionName = (project.findProperty("versionName") as String?) ?: "1.9"
+    versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 11
+    versionName = (project.findProperty("versionName") as String?) ?: "1.10"
     // 爸媽手機控制頁的埠號(http://電視IP:埠/)
     buildConfigField("int", "PARENT_PORT", "8765")
     // 手機按「檢查更新」時問的地方(GitHub Releases 最新版);測試時用 -PupdateUrl=… 換掉

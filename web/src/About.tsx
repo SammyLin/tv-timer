@@ -32,10 +32,11 @@ export function AboutPage({ version }: { version: string }) {
     <div className="flex flex-col gap-3">
       <Card>
         <CardContent className="flex flex-col items-center gap-3 pt-2 text-center">
-          <img src="/logo.svg" alt="" className="size-20 rounded-2xl" />
+          <img src="/art/tvbot-wave.webp" alt="吉祥物小電" className="size-36 object-contain" />
           <div>
             <h1 className="text-2xl font-bold">看電視計時</h1>
             <p className="text-sm text-muted-foreground">版本 {version} · MIT 授權 · 免費開源</p>
+            <p className="mt-1 text-xs text-muted-foreground">吉祥物「小電」:愛看電視,也會提醒大家時間到了</p>
           </div>
           <p className="text-[15px] leading-relaxed text-muted-foreground">
             給 Google TV 的看電視計時器。小孩打開電視先選誰看、看多久,時間到播一段音樂自動鎖起來;爸媽用手機看狀態、加時間、同意不限制。

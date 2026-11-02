@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo.svg" alt="tv-timer logo" width="96" />
+  <img src="logo.png" alt="看電視計時 吉祥物小電" width="120" style="border-radius:24px" />
   <h1>tv-timer 看電視計時</h1>
   <p><b>家裡電視的看電視時間鎖。</b><br>小孩用遙控器選誰要看、看多久;其他的由爸媽在手機上同意。</p>
 </div>

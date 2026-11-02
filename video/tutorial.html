@@ -11,7 +11,7 @@
 </style>
 <body>
 <div id="bg"><img src="assets/art/bg-livingroom.png"></div>
-<div class="brand"><img src="assets/logo.svg">看電視計時</div>
+<div class="brand"><img src="assets/icon.png">看電視計時</div>
 <div id="steps"></div>
 
 <!-- 開場 -->
@@ -37,7 +37,7 @@
     <div class="tapcount">0 / 7</div>
     <div class="toast">您現在已經是開發人員了!</div>
   </div></div></div><div class="tv-stand"></div></div>
-  <img class="bot" src="assets/art/tvbot-point.png" style="width:140px;left:8px;top:600px" data-in="1.4,0.7,pop" data-fn="bob">
+  <img class="bot" src="assets/art/tvbot-point.png" style="width:118px;left:6px;top:596px" data-in="1.4,0.7,pop" data-fn="bob">
 </section>
 
 <!-- 2 USB 偵錯 -->
@@ -142,11 +142,13 @@
   window.seek = (t) => {
     baseSeek(t)
     bgImg.style.transform = `scale(${1.06 + Math.sin(t * 0.15) * 0.03}) translateY(${Math.sin(t * 0.2) * 6}px)`
-    // 字幕:目前這句,唸到哪綠到哪
+    // 字幕:整句一起出現,換下一句時才淡入(不要一個字一個字變色,看起來會閃)
     const s = T.scenes.find((x) => t >= x.start && t < x.end) ?? T.scenes.at(-1)
-    const chars = [...s.text]
-    const n = Math.floor(clamp((t - s.vo) / s.voDur) * chars.length)
-    cap.innerHTML = `<span><span class="done">${chars.slice(0, n).join("")}</span><span class="now">${chars.slice(n, n + 1).join("")}</span><span class="todo">${chars.slice(n + 1).join("")}</span></span>`
+    if (cap.dataset.id !== s.id) { cap.dataset.id = s.id; cap.innerHTML = `<span class="done">${s.text}</span>` }
+    const p = clamp((t - s.start) / 0.35)
+    cap.firstChild.style.opacity = p
+    cap.firstChild.style.display = "inline-block"
+    cap.firstChild.style.transform = `translateY(${(1 - p) * 8}px)`
     document.querySelectorAll("#steps i").forEach((d, i) => d.classList.toggle("on", T.scenes[i] === s))
   }
 

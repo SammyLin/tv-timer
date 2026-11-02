@@ -49,7 +49,7 @@ export function NavMenu({ page, go, version, hasUpdate }: { page: Page; go: (p: 
       <SheetContent side="left" className="w-72 gap-0 p-0">
         <SheetHeader className="border-b p-5 pt-[calc(env(safe-area-inset-top)+1.25rem)]">
           <SheetTitle className="flex items-center gap-3 text-lg">
-            <img src="/logo.svg" alt="" className="size-9 rounded-lg" />看電視計時
+            <img src="/icons/icon-192.png" alt="" className="size-10 rounded-xl" />看電視計時
           </SheetTitle>
           <SheetDescription>{version ? `版本 ${version}` : ""}</SheetDescription>
         </SheetHeader>

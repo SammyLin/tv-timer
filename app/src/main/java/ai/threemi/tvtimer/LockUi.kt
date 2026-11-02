@@ -2,6 +2,7 @@ package ai.threemi.tvtimer
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -303,10 +304,8 @@ private fun TopBar() {
 /** App 的記號:一個時鐘面,指針停在快一小時的地方 */
 @Composable
 private fun Mark() {
-  Box(Modifier.size(30.dp).clip(CircleShape).background(T.Raised), contentAlignment = Alignment.Center) {
-    Box(Modifier.size(width = 3.dp, height = 11.dp).offset(y = (-4).dp).background(T.Text))
-    Box(Modifier.size(width = 9.dp, height = 3.dp).offset(x = 4.dp).background(T.Text))
-  }
+  // App 圖示(吉祥物小電)
+  Image(painterResource(R.drawable.icon), null, Modifier.size(34.dp).clip(RoundedCornerShape(9.dp)))
 }
 
 // ---------------- 時間到 ----------------
@@ -318,7 +317,8 @@ private fun TimeUp(s: State) {
   val names = s.config.kids.filter { (s.watchedToday[it] ?: 0) >= 60_000 }
   Column(Modifier.fillMaxSize()) {
     TopBar()
-    Spacer(Modifier.weight(1f))
+    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.weight(1f)) {
     Text("時間到了", style = H1.copy(fontSize = 64.sp))
     Spacer(Modifier.height(14.dp))
     if (names.isNotEmpty()) {
@@ -332,7 +332,10 @@ private fun TimeUp(s: State) {
     Text("站起來走走,讓眼睛看看窗外。", style = Lead.copy(color = T.Muted))
     Spacer(Modifier.height(36.dp))
     Primary("知道了", enabled = true, width = 240.dp, modifier = Modifier.focusRequester(first)) { Store.dismissTimeUp() }
-    Spacer(Modifier.weight(1f))
+    }
+    // 小電抱著響個不停的鬧鐘
+    Image(painterResource(R.drawable.tvbot_alarm), null, Modifier.size(320.dp))
+    }
   }
 }
 
@@ -357,6 +360,8 @@ private fun Approval(code: String) {
         Spacer(Modifier.height(36.dp))
         Secondary("取消", Modifier.focusRequester(first)) { Store.cancelApproval() }
       }
+      Image(painterResource(R.drawable.tvbot_phone), null, Modifier.size(210.dp))
+      Spacer(Modifier.width(20.dp))
       Image(qr.asImageBitmap(), "爸媽同意用的 QR code", Modifier.size(340.dp).clip(T.Card).background(Color.White).padding(18.dp))
     }
   }

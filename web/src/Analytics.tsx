@@ -91,7 +91,10 @@ export function AnalyticsCard({ state, busy, run }: { state: TvState; busy: stri
         </div>
 
         {series.length === 0 || tvSec === 0
-          ? <p className="text-sm text-muted-foreground">這段期間還沒有看電視的紀錄。</p>
+          ? <div className="flex flex-col items-center gap-2 py-2 text-center">
+              <img src="/art/tvbot-point.webp" alt="" className="size-24 object-contain" />
+              <p className="text-sm text-muted-foreground">這段期間還沒有看電視的紀錄。</p>
+            </div>
           : <>
             {series.map((s) => (
               <PersonRow key={s.name} label={s.label} color={s.color} days={days.map((d) => ({ date: d.date, sec: d.kids[s.name] ?? 0 }))}

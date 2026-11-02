@@ -114,7 +114,7 @@ export default function App() {
         <span className="flex items-center gap-1 font-medium text-foreground">
           <NavMenu page={page} go={go} version={state?.version} hasUpdate={state?.update.phase === "available"} />
           <button className="flex items-center gap-2" onClick={() => go("home")}>
-            <img src="/logo.svg" alt="" className="size-7 rounded-md" />看電視計時
+            <img src="/icons/icon-192.png" alt="" className="size-8 rounded-lg" />看電視計時
           </button>
         </span>
         <span className="tabular-nums">
@@ -154,7 +154,8 @@ export default function App() {
 function Loading({ offline, onRetry }: { offline: boolean; onRetry: () => void }) {
   return (
     <Card className="mt-4">
-      <CardHeader>
+      <CardHeader className="items-center text-center">
+        <img src={offline ? "/art/tvbot-phone.webp" : "/art/tvbot-wave.webp"} alt="" className="mx-auto size-32 object-contain" />
         <CardTitle>{offline ? "連不到電視" : "讀取中…"}</CardTitle>
         {offline && <CardDescription>手機要連家裡的 Wi-Fi,電視也要開著或在待機。</CardDescription>}
       </CardHeader>

@@ -122,6 +122,7 @@ class ParentServer(private val context: Context, private val port: Int, private 
     "css" -> "text/css; charset=utf-8"
     "svg" -> "image/svg+xml"
     "png" -> "image/png"
+    "webp" -> "image/webp"
     "woff2" -> "font/woff2"
     "json" -> "application/json"
     else -> "application/octet-stream"

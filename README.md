@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/logo.svg" alt="tv-timer logo" width="96" />
+  <img src="docs/logo.png" alt="tv-timer logo: Little TV mascot" width="120" style="border-radius:24px" />
   <h1>tv-timer</h1>
   <p><b>A screen-time lock for the family TV.</b><br>Kids pick who is watching and for how long with the remote; parents approve the rest from their phone.</p>
 </div>

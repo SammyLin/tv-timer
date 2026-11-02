@@ -30,6 +30,7 @@ export function UpdateCard({ state, busy, run }: { state: TvState; busy: string 
   return (
     <Card>
       <CardHeader>
+        <img src={u.phase === "available" ? "/art/tvbot-cheer.webp" : "/art/tvbot-point.webp"} alt="" className="mx-auto size-28 object-contain" />
         <CardTitle>App 版本 {state.version}</CardTitle>
         <CardDescription>
           {u.phase === "available" && `有新版 ${u.latest} 可以更新`}
@@ -66,8 +67,8 @@ export function UpdateBanner({ state, onOpen }: { state: TvState; onOpen: () => 
   if (state.update.phase !== "available") return null
   return (
     <button onClick={onOpen}
-      className="flex w-full items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left">
-      <span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-75" /><span className="relative size-2.5 rounded-full bg-red-500" /></span>
+      className="flex w-full items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-left">
+      <img src="/art/tvbot-cheer.webp" alt="" className="size-14 shrink-0 object-contain" />
       <span className="flex-1">
         <span className="block font-semibold">有新版 {state.update.latest}</span>
         <span className="block text-sm text-muted-foreground">目前是 {state.version},點這裡看更新內容</span>
