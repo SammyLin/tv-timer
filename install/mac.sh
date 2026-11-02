@@ -15,8 +15,9 @@ say()  { printf '\n\033[1;36m▶ %s\033[0m\n' "$*"; }
 ok()   { printf '\033[1;32m✓ %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31m✗ %s\033[0m\n' "$*"; exit 1; }
 ask()  { local a; read -r -p "$1" a </dev/tty; printf '%s' "$a"; }
-# adb 偶爾會卡住,最多等幾秒
-adb_t() { local t=$1; shift; perl -e 'alarm shift; exec @ARGV' "$t" "$ADB" "$@"; }
+# adb 偶爾會卡住,最多等幾秒。
+# </dev/null:用「curl | bash」跑的時候程式本身從 stdin 來,adb shell 會把後面的程式吃掉
+adb_t() { local t=$1; shift; perl -e 'alarm shift; exec @ARGV' "$t" "$ADB" "$@" </dev/null; }
 
 printf '\n\033[1m📺 看電視計時 · 安裝到電視\033[0m\n'
 printf '開始前請確認:電視已開「開發人員選項」和「USB 偵錯」,而且電視和這台電腦連同一個網路。\n'
@@ -38,7 +39,7 @@ fi
 ok "下載好了"
 
 say "3/5 連到電視"
-"$ADB" start-server >/dev/null 2>&1
+"$ADB" start-server </dev/null >/dev/null 2>&1
 while :; do
   IP=$(ask "請輸入電視的 IP 位址(例如 192.168.1.23),然後按 Enter:" | tr -d ' ')
   case "$IP" in *:*) TARGET="$IP" ;; *) TARGET="$IP:5555" ;; esac
