@@ -111,7 +111,8 @@ private const val CUSTOM = -1
 @Composable
 private fun Picker(s: State) {
   val cfg = s.config
-  val paused = s.session?.takeIf { !it.running && !it.unlimited && it.remainingMs > 0 }
+  // 爸媽把其中一個小孩設成不能看了,就不給「繼續上次」
+  val paused = s.session?.takeIf { p -> !p.running && !p.unlimited && p.remainingMs > 0 && p.kids.none { cfg.limitFor(it) == 0 } }
   var kids by remember { mutableStateOf(listOf<String>()) }
   var unlimited by remember { mutableStateOf(false) }
   var minutes by rememberSaveable { mutableIntStateOf(cfg.presets.firstOrNull() ?: 30) }
@@ -121,7 +122,7 @@ private fun Picker(s: State) {
   LaunchedEffect(editingCustom) { if (!editingCustom) runCatching { first.requestFocus() } }
 
   fun leftToday(kid: String): Long? =
-    if (cfg.dailyLimit <= 0) null else (cfg.dailyLimit * 60_000L - (s.watchedToday[kid] ?: 0)).coerceAtLeast(0)
+    cfg.limitFor(kid)?.let { (it * 60_000L - (s.watchedToday[kid] ?: 0)).coerceAtLeast(0) }
 
   if (editingCustom) {
     CustomMinutes(custom) { custom = it; minutes = CUSTOM; editingCustom = false }
@@ -184,7 +185,8 @@ private fun Picker(s: State) {
           pausedLeft = paused?.takeIf { kid in it.kids }?.let { mins(it.remainingMs) },
           watched = watchedMins(s.watchedToday[kid] ?: 0),
           left = left?.let { mins(it) },
-          limit = cfg.dailyLimit,
+          limit = cfg.limitFor(kid) ?: 0,
+          blockedUntil = cfg.kidLimits[kid]?.takeIf { it.minutes == 0 && cfg.limitFor(kid) == 0 }?.let { it.until ?: "" },
         ) {
           if (!done) {
             unlimited = false
@@ -239,6 +241,8 @@ private fun KidCard(
   watched: Int,
   left: Int?,
   limit: Int,
+  /** 爸媽設成不能看:"" = 沒期限,不然是到哪天(yyyy-MM-dd) */
+  blockedUntil: String? = null,
   onClick: () -> Unit,
 ) {
   Focusable(modifier.height(116.dp), shape = T.Card, selected = selected, disabled = disabled, onClick = onClick) { inverted ->
@@ -252,6 +256,11 @@ private fun KidCard(
       }
       val sub = if (inverted) T.Raised else T.Muted
       when {
+        blockedUntil != null -> Text(
+          if (blockedUntil.isEmpty()) "爸媽設定暫停看電視"
+          else "暫停到 ${blockedUntil.substring(5).replace("-", "/").trimStart('0').replace("/0", "/")}",
+          style = Small.copy(color = sub),
+        )
         pausedLeft != null -> Row(verticalAlignment = Alignment.Bottom) {
           Text("上次還剩 ", style = Small.copy(color = sub))
           Text("$pausedLeft 分", style = Small.copy(color = if (inverted) T.Ink else T.Amber, fontWeight = FontWeight.SemiBold))
@@ -262,7 +271,7 @@ private fun KidCard(
             if (left > 0) Text("$left 分", style = Small.copy(color = if (inverted) T.Ink else T.Amber, fontWeight = FontWeight.SemiBold))
           }
           Spacer(Modifier.height(8.dp))
-          Allowance(left.toFloat() / limit, inverted)
+          Allowance(if (limit > 0) left.toFloat() / limit else 0f, inverted)
         }
         else -> Text("今天看了 $watched 分", style = Small.copy(color = sub))
       }

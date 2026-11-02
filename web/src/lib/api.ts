@@ -6,7 +6,8 @@ export type TvState = {
   status: Status
   who: string[]
   remainingMinutes: number | null
-  today: { name: string; minutes: number }[]
+  /** limit:今天的上限(null = 不限、0 = 不能看);override:爸媽替這個小孩另外設的 */
+  today: { name: string; minutes: number; limit: number | null; override: KidLimit | null }[]
   config: {
     kids: string[]
     presets: number[]
@@ -22,6 +23,9 @@ export type TvState = {
   version: string
   update: UpdateStatus
 }
+
+/** minutes:-1 = 不限、0 = 不能看;until:到哪天(含)為止 */
+export type KidLimit = { minutes: number; until: string | null }
 
 export type TvTheme = { id: string; name: string; light: boolean; ground: string; surface: string; text: string; accent: string }
 
@@ -58,6 +62,7 @@ export type Action =
   | { action: "history-clear"; date?: string }
   | { action: "update-install" }
   | { action: "theme"; theme: string }
+  | { action: "kid-limit"; kid: string; minutes: number | null; until?: string }
   | { action: "retention"; days: number }
   | { action: "add"; minutes: number }
   | ({ action: "save" } & Settings)

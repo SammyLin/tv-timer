@@ -145,7 +145,12 @@ class ParentServer(private val context: Context, private val port: Int, private 
       .put("status", status)
       .put("who", JSONArray(session?.kids ?: emptyList<String>()))
       .put("remainingMinutes", session?.takeIf { !it.unlimited }?.let { (it.remainingMs + 59_999) / 60_000 } ?: JSONObject.NULL)
-      .put("today", JSONArray(c.kids.map { JSONObject().put("name", it).put("minutes", (s.watchedToday[it] ?: 0) / 60_000) }))
+      .put("today", JSONArray(c.kids.map { k ->
+        val o = c.kidLimits[k]?.takeIf { it.activeOn(java.time.LocalDate.now().toString()) }
+        JSONObject().put("name", k).put("minutes", (s.watchedToday[k] ?: 0) / 60_000)
+          .put("limit", c.limitFor(k) ?: JSONObject.NULL)
+          .put("override", o?.let { JSONObject().put("minutes", it.minutes).put("until", it.until ?: JSONObject.NULL) } ?: JSONObject.NULL)
+      }))
       .put("config", JSONObject()
         .put("kids", JSONArray(c.kids))
         .put("presets", JSONArray(c.presets))
@@ -188,6 +193,22 @@ class ParentServer(private val context: Context, private val port: Int, private 
           Store.addMinutes(min); "加了 $min 分鐘"
         }
         "stop" -> { Store.stop(); "已停止,電視回到選人畫面" }
+        "kid-limit" -> {
+          val kid = f.optString("kid")
+          if (kid !in s.config.kids) return@onMain "沒有這個小孩"
+          val limits = s.config.kidLimits.toMutableMap()
+          if (f.isNull("minutes") || !f.has("minutes")) {
+            limits.remove(kid)
+            Store.saveConfig(s.config.copy(kidLimits = limits))
+            return@onMain "$kid 改回跟大家一樣"
+          }
+          val m = f.optInt("minutes").coerceIn(-1, 1440)
+          val until = f.optString("until").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
+          limits[kid] = KidLimit(m, until)
+          Store.saveConfig(s.config.copy(kidLimits = limits))
+          val what = when { m == 0 -> "不能看"; m < 0 -> "不限時間"; else -> "每天 $m 分" }
+          "$kid 改成$what" + (until?.let { ",到 ${it.substring(5).replace("-", "/")} 為止" } ?: "")
+        }
         "theme" -> {
           val id = f.optString("theme")
           if (!Theme.isValid(id)) return@onMain "沒有這個配色"

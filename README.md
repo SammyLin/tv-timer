@@ -40,7 +40,7 @@ tv-timer puts the decision on the screen itself:
 | **Countdown** | A small, half-transparent "minutes left" in the corner; it turns into a large countdown in the last minutes |
 | **Time's up** | Pauses whatever is playing behind it, plays a soft 10-second marimba tune, then locks |
 | **Pause and resume** | TV standby pauses; the remaining minutes carry over. App updates do not interrupt a session |
-| **Daily allowance** | Per kid, per day (default 120 min, 0 = none); a session is capped at what is left |
+| **Daily allowance** | Per kid, per day (default 120 min, 0 = none); a session is capped at what is left. Override it for one kid (custom minutes, no TV, or no limit), optionally until a date, e.g. "no TV this week" |
 | **Parent phone page** | `http://TV-IP:8765/`: approve "no limit", add 15 / 30 min, stop, rename kids, change limits and PIN, test the chime |
 | **Viewing history** | The phone page charts the last 7 / 30 days: minutes per kid per day (with the daily limit), totals and averages, the hours the TV is on, and how much was "no limit". Retention is configurable (default 30 days, older days are deleted); delete one day or everything |
 | **Color themes** | Six TV themes: warm black, midnight blue, forest (dark), white, milk tea, macaron (light). Pick one on the phone and the TV switches immediately |

@@ -95,7 +95,7 @@ export function AnalyticsCard({ state, busy, run }: { state: TvState; busy: stri
           : <>
             {series.map((s) => (
               <PersonRow key={s.name} label={s.label} color={s.color} days={days.map((d) => ({ date: d.date, sec: d.kids[s.name] ?? 0 }))}
-                limitMin={s.name === FAMILY ? 0 : state.config.dailyLimit} />
+                limitMin={s.name === FAMILY ? 0 : (state.today.find((k) => k.name === s.name)?.limit ?? 0)} />
             ))}
             <Separator />
             <HoursChart days={days} />

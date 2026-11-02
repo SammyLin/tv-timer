@@ -11,6 +11,7 @@ import { UpdateBanner, UpdateCard } from "@/Update"
 import { NavMenu, usePage } from "@/Nav"
 import { AboutPage } from "@/About"
 import { ThemeCard } from "@/ThemePicker"
+import { KidLimitDialog, shortDate } from "@/KidLimit"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { colorOf } from "@/lib/colors"
 import { Button } from "@/components/ui/button"
@@ -130,7 +131,7 @@ export default function App() {
               forget={() => { savedPin.set(""); setRemembered(false); setPin(""); setTimeout(() => pinRef.current?.focus(), 50) }}
               busy={busy} run={run}
             />
-            <TodayCard state={state} />
+            <TodayCard state={state} busy={busy} run={run} />
             <InstallButton />
           </>}
           {page === "analytics" && <AnalyticsCard state={state} busy={busy} run={run} />}
@@ -274,15 +275,16 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
   )
 }
 
-function TodayCard({ state }: { state: TvState }) {
-  const limit = state.config.dailyLimit
-  return (
+function TodayCard({ state, busy, run }: { state: TvState; busy: string | null; run: RunFn }) {
+  const [editing, setEditing] = useState<string | null>(null)
+  return (<>
     <Card>
       <CardHeader><CardTitle>今天看了多久</CardTitle></CardHeader>
       <CardContent className="flex flex-col gap-4">
         {state.today.map((k) => {
           // 跟觀看分析同一個顏色
           const c = colorOf(state.config.kids, k.name)
+          const limit = k.limit ?? 0
           return (
             <div key={k.name} className="flex items-center gap-3">
               <Avatar className="size-9">
@@ -294,17 +296,28 @@ function TodayCard({ state }: { state: TvState }) {
                 <div className="flex items-baseline justify-between">
                   <span className="font-medium">{k.name}</span>
                   <span className="text-sm text-muted-foreground tabular-nums">
-                    <span className="text-base font-semibold text-amber-400">{k.minutes}</span> 分{limit > 0 && ` / ${limit}`}
+                    <span className="text-base font-semibold text-amber-400">{k.minutes}</span> 分
+                    {k.limit === null ? " · 不限" : k.limit === 0 ? "" : ` / ${k.limit}`}
                   </span>
                 </div>
-                {limit > 0 && <Progress value={Math.min(100, (k.minutes * 100) / limit)} className="mt-2 h-1.5 [&>*]:bg-amber-400" />}
+                {k.limit === 0
+                  ? <p className="mt-1 text-sm font-medium text-red-400">暫停看電視{k.override?.until && `,到 ${shortDate(k.override.until)}`}</p>
+                  : limit > 0 && <Progress value={Math.min(100, (k.minutes * 100) / limit)} className="mt-2 h-1.5 [&>*]:bg-amber-400" />}
+                {k.override && k.limit !== 0 && (
+                  <p className="mt-1 text-xs text-muted-foreground">個別設定{k.override.until && `,到 ${shortDate(k.override.until)}`}</p>
+                )}
               </div>
+              <Button variant="ghost" size="sm" className="h-10 shrink-0 px-2 text-muted-foreground" onClick={() => setEditing(k.name)}>調整</Button>
             </div>
           )
         })}
       </CardContent>
     </Card>
-  )
+    <KidLimitDialog state={state} kid={editing} busy={busy} onClose={() => setEditing(null)}
+      onSave={async (minutes, until) => {
+        if (await run(`kid-${editing}`, { action: "kid-limit", kid: editing!, minutes, until })) setEditing(null)
+      }} />
+  </>)
 }
 
 function SettingsCard({ state, busy, onSave, onChime }: { state: TvState; busy: boolean; onSave: (s: Settings) => Promise<boolean>; onChime: () => void }) {

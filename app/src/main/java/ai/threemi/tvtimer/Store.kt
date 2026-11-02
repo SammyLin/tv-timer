@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
+import org.json.JSONObject
 import java.time.LocalDate
 import kotlin.random.Random
 
@@ -22,7 +23,24 @@ data class Config(
   val warnMinutes: Int,
   /** 電視畫面的配色(Theme.ALL 的 id) */
   val theme: String = Theme.DEFAULT,
-)
+  /** 個別小孩的每日上限(蓋過 dailyLimit),例如這週某個小孩不能看 */
+  val kidLimits: Map<String, KidLimit> = emptyMap(),
+) {
+  /**
+   * 這個小孩今天的上限(分鐘):null = 不限、0 = 不能看。
+   * 有個別設定而且還沒過期限就用它,不然用大家共用的 dailyLimit(0 = 不限)
+   */
+  fun limitFor(kid: String, today: String = LocalDate.now().toString()): Int? {
+    val o = kidLimits[kid]?.takeIf { it.activeOn(today) }
+    val m = o?.minutes ?: dailyLimit.takeIf { it > 0 }
+    return if (m == null || m < 0) null else m
+  }
+}
+
+/** minutes:-1 = 不限、0 = 不能看;until = 到哪天為止(含那天,yyyy-MM-dd),null = 一直 */
+data class KidLimit(val minutes: Int, val until: String?) {
+  fun activeOn(today: String) = until == null || today <= until
+}
 
 /** 一次看電視。running=false 表示暫停(電視關掉或按暫停),下次可以「繼續上次」 */
 data class Session(
@@ -84,6 +102,13 @@ object Store {
       dailyLimit = prefs.getInt("daily", d.dailyLimit),
       warnMinutes = prefs.getInt("warn", d.warnMinutes),
       theme = prefs.getString("theme", d.theme)!!,
+      kidLimits = prefs.getString("kid_limits", null)?.let { s ->
+        val o = JSONObject(s)
+        o.keys().asSequence().associateWith { k ->
+          val v = o.getJSONObject(k)
+          KidLimit(v.getInt("minutes"), v.optString("until").ifEmpty { null })
+        }
+      } ?: emptyMap(),
     )
   }
 
@@ -96,6 +121,9 @@ object Store {
       .putInt("daily", c.dailyLimit)
       .putInt("warn", c.warnMinutes)
       .putString("theme", c.theme)
+      .putString("kid_limits", JSONObject().apply {
+        c.kidLimits.forEach { (k, v) -> put(k, JSONObject().put("minutes", v.minutes).put("until", v.until ?: "")) }
+      }.toString())
       .apply()
     _state.value = _state.value.copy(config = c, watchedToday = loadWatched(c.kids))
   }
