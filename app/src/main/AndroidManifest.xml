@@ -47,5 +47,15 @@
         <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
       </intent-filter>
     </receiver>
+
+    <!-- 忘記密碼時由電腦 adb 重設;DUMP 只有 shell/系統有,一般 App 送不進來 -->
+    <receiver
+      android:name=".AdminReceiver"
+      android:exported="true"
+      android:permission="android.permission.DUMP">
+      <intent-filter>
+        <action android:name="ai.threemi.tvtimer.RESET_PIN" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

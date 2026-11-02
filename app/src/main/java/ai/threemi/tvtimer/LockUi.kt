@@ -215,7 +215,7 @@ private fun Picker(s: State) {
     if (!Store.isSetupShown) {
       Spacer(Modifier.height(14.dp))
       Text(
-        "爸媽手機打開 http://${Net.localIp() ?: "電視IP"}:${BuildConfig.PARENT_PORT}/  ·  初始爸媽密碼 ${cfg.pin}(在手機改掉後就不顯示)",
+        "爸媽手機打開 http://${Net.localIp() ?: "電視IP"}:${BuildConfig.PARENT_PORT}/  ·  爸媽密碼 ${cfg.pin}(在手機改掉後就不顯示)",
         style = Small.copy(color = T.Faint),
       )
     }

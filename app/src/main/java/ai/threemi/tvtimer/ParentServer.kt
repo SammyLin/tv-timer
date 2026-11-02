@@ -27,6 +27,8 @@ class ParentServer(private val context: Context, private val port: Int, private 
   private val main = Handler(Looper.getMainLooper())
   private var wrong = 0
   private var lockedUntil = 0L
+  /** 鎖住時的密碼;密碼被重設過就不再擋 */
+  private var lockedPin = ""
 
   fun start() {
     thread(name = "parent-server", isDaemon = true) {
@@ -154,11 +156,12 @@ class ParentServer(private val context: Context, private val port: Int, private 
   /** 執行動作,回傳(密碼對不對, 要顯示的訊息) */
   private fun act(f: JSONObject): Pair<Boolean, String> {
     val now = SystemClock.elapsedRealtime()
+    if (lockedUntil != 0L && lockedPin != Store.state.value.config.pin) { lockedUntil = 0; wrong = 0 }
     if (now < lockedUntil) return false to "密碼錯太多次,請 ${(lockedUntil - now) / 60_000 + 1} 分鐘後再試"
     // 手機輸入法可能多帶空白或全形數字,先整理成半形數字再比
     val typed = f.optString("pin").map { if (it in '０'..'９') '0' + (it - '０') else it }.filter { it.isDigit() }.joinToString("")
     if (typed != Store.state.value.config.pin) {
-      if (++wrong >= 5) { wrong = 0; lockedUntil = now + 10 * 60_000; return false to "密碼錯 5 次,請 10 分鐘後再試" }
+      if (++wrong >= 5) { wrong = 0; lockedUntil = now + 10 * 60_000; lockedPin = Store.state.value.config.pin; return false to "密碼錯 5 次,請 10 分鐘後再試" }
       return false to "密碼不對,還可以試 ${5 - wrong} 次"
     }
     wrong = 0

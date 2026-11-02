@@ -82,6 +82,8 @@ irm https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/windows.ps1
 
 Step-by-step guide for non-technical people (Traditional Chinese): [docs/INSTALL.zh-TW.md](docs/INSTALL.zh-TW.md)
 
+The same command also resets a forgotten parent PIN (menu 2) or force-removes the app (menu 3).
+
 Or by hand, if you already have `adb` (get `tv-timer.apk` from [Releases](https://github.com/SammyLin/tv-timer/releases)):
 
 1. On the TV: Settings → System → About → click **Android TV OS build** seven times to enable developer mode

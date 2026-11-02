@@ -56,6 +56,14 @@ object Store {
   val isSetupShown get() = prefs.getBoolean("setup_shown", false)
   fun markSetupShown() = prefs.edit().putBoolean("setup_shown", true).apply()
 
+  /** 爸媽忘記密碼:換一組新的 4 位數,鎖定畫面再顯示一次;其他設定和紀錄都不動 */
+  fun resetPin(): String {
+    val pin = "%04d".format(Random.nextInt(10000))
+    prefs.edit().putBoolean("setup_shown", false).apply()
+    saveConfig(_state.value.config.copy(pin = pin))
+    return pin
+  }
+
   // ---- 設定 ----
 
   private fun defaultConfig() = Config(listOf("哥哥", "妹妹"), "0000", 45, listOf(30, 60), 120, 5)

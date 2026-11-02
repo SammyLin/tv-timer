@@ -117,3 +117,19 @@ class GuardService : Service() {
 class BootReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) = GuardService.start(context)
 }
+
+/**
+ * 給電腦上的安裝程式用(adb):忘記爸媽密碼時重設。
+ *   adb shell am broadcast -a ai.threemi.tvtimer.RESET_PIN -n ai.threemi.tvtimer/.AdminReceiver
+ * Manifest 要求 DUMP 權限,只有 adb shell / 系統送得進來,電視上其他 App 碰不到。
+ * 新密碼放在 result data,am broadcast 會印出來。
+ */
+class AdminReceiver : BroadcastReceiver() {
+  override fun onReceive(context: Context, intent: Intent) {
+    if (intent.action != "ai.threemi.tvtimer.RESET_PIN") return
+    Store.init(context)
+    val pin = Store.resetPin()
+    setResult(1, pin, null)
+    GuardService.start(context)
+  }
+}

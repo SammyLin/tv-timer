@@ -11,8 +11,8 @@ android {
     applicationId = "ai.threemi.tvtimer"
     minSdk = 26
     targetSdk = 35
-    versionCode = 2
-    versionName = "1.1"
+    versionCode = 3
+    versionName = "1.2"
     // 爸媽手機控制頁的埠號(http://電視IP:埠/)
     buildConfigField("int", "PARENT_PORT", "8765")
   }
