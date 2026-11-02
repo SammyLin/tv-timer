@@ -69,14 +69,27 @@ API on the TV: `GET /api/state`, `POST /api/do` (JSON, needs the parent PIN).
 
 ## Install on a TV
 
-You need a computer with `adb` and the TV on the same network.
+Turn on **Developer options** and **USB debugging** on the TV (steps 1–2 below), then paste one line on a computer on the same network. It downloads `adb` and the latest app, asks for the TV's IP, installs and grants the permission:
+
+```sh
+# Mac (Terminal)
+curl -fsSL https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/mac.sh | bash
+```
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/windows.ps1 | iex
+```
+
+Step-by-step guide for non-technical people (Traditional Chinese): [docs/INSTALL.zh-TW.md](docs/INSTALL.zh-TW.md)
+
+Or by hand, if you already have `adb` (get `tv-timer.apk` from [Releases](https://github.com/SammyLin/tv-timer/releases)):
 
 1. On the TV: Settings → System → About → click **Android TV OS build** seven times to enable developer mode
 2. Settings → System → Developer options → turn on **USB debugging**
 3. On the computer:
    ```sh
    adb connect TV-IP            # tick "Always allow" on the TV, then Allow
-   adb install -r app-release.apk
+   adb install -r tv-timer.apk
    adb shell appops set ai.threemi.tvtimer SYSTEM_ALERT_WINDOW allow
    adb shell am start -n ai.threemi.tvtimer/.MainActivity
    ```
@@ -93,6 +106,7 @@ TV=http://TV-IP:8765 npm run dev    # dev server, /api goes to the TV
 
 # Android app (JDK 17, Android SDK)
 ./gradlew assembleRelease           # app/build/outputs/apk/release/app-release.apk
+# release signing: set TVTIMER_KEYSTORE and TVTIMER_KEYSTORE_PASSWORD (falls back to the debug key)
 ```
 
 ## Reach it from anywhere with Tailscale

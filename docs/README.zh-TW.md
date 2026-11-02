@@ -61,14 +61,27 @@ tv-timer 把決定放在電視畫面上:
 
 ## 安裝到電視
 
-需要一台有 `adb` 的電腦,跟電視在同一個網路。
+**不熟電腦?看這份圖文教程:[一步一步裝到電視](INSTALL.zh-TW.md)**
+
+電視先開「開發人員選項」和「USB 偵錯」,然後在跟電視同一個網路的電腦貼一行(會自動下載 adb 和最新版 App):
+
+```sh
+# Mac(終端機)
+curl -fsSL https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/mac.sh | bash
+```
+```powershell
+# Windows(PowerShell)
+irm https://raw.githubusercontent.com/SammyLin/tv-timer/main/install/windows.ps1 | iex
+```
+
+已經有 `adb` 的話也可以手動裝([Releases](https://github.com/SammyLin/tv-timer/releases) 下載 `tv-timer.apk`):
 
 1. 電視:設定 → 系統 → 關於 →「Android TV 作業系統版本」連按 7 下,開啟開發人員模式
 2. 設定 → 系統 → 開發人員選項 → 開啟「USB 偵錯」
 3. 電腦:
    ```sh
    adb connect 電視IP            # 電視上勾「一律允許」再按「允許」
-   adb install -r app-release.apk
+   adb install -r tv-timer.apk
    adb shell appops set ai.threemi.tvtimer SYSTEM_ALERT_WINDOW allow
    adb shell am start -n ai.threemi.tvtimer/.MainActivity
    ```
@@ -85,6 +98,7 @@ TV=http://電視IP:8765 npm run dev    # 開發用,/api 轉到電視
 
 # Android App(JDK 17、Android SDK)
 ./gradlew assembleRelease           # app/build/outputs/apk/release/app-release.apk
+# 正式簽章:設 TVTIMER_KEYSTORE、TVTIMER_KEYSTORE_PASSWORD(沒設就用 debug 金鑰)
 ```
 
 ## 用 Tailscale 從外面連

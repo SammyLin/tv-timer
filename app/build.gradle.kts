@@ -11,15 +11,25 @@ android {
     applicationId = "ai.threemi.tvtimer"
     minSdk = 26
     targetSdk = 35
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.1"
     // 爸媽手機控制頁的埠號(http://電視IP:埠/)
     buildConfigField("int", "PARENT_PORT", "8765")
   }
+  // 正式版金鑰從環境變數讀(TVTIMER_KEYSTORE / TVTIMER_KEYSTORE_PASSWORD),不進 git;
+  // 沒設的話正式版也用 debug 金鑰簽,方便自己 build 來玩
+  val releaseKey = System.getenv("TVTIMER_KEYSTORE")?.let { file(it.replaceFirst("~", System.getProperty("user.home"))) }?.takeIf { it.exists() }
+  signingConfigs {
+    if (releaseKey != null) create("release") {
+      storeFile = releaseKey
+      storePassword = System.getenv("TVTIMER_KEYSTORE_PASSWORD")
+      keyAlias = "tvtimer"
+      keyPassword = System.getenv("TVTIMER_KEYSTORE_PASSWORD")
+    }
+  }
   buildTypes {
     release {
-      // 自己裝在家裡電視用,先用 debug 金鑰簽
-      signingConfig = signingConfigs.getByName("debug")
+      signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
       isMinifyEnabled = false
     }
   }
