@@ -4,7 +4,7 @@
 
 | 檔案 | 內容 | 長度 |
 |---|---|---|
-| `intro.html` | 介紹:選人選時間、倒數與時間到、爸媽手機、不限制要同意、觀看分析 | 36 秒 |
+| `intro.html` | 介紹:選人選時間、倒數與時間到(有時間到音效)、爸媽手機、不限制要同意、每個小孩分開設、電視配色、觀看分析 | 48 秒 |
 | `tutorial.html` | 安裝教學:開發人員選項、USB 偵錯、電腦貼一行、按允許、網址和密碼、之後怎麼辦 | 52 秒 |
 
 ```sh
@@ -13,4 +13,4 @@ node render.js intro             # → out/intro.mp4
 node render.js tutorial --stills 5,20,40   # 先看某幾秒的畫面 → out/tutorial-5.png …
 ```
 
-需要 ffmpeg 和 Google Chrome(路徑可用 `CHROME=` 指定)。影片沒有聲音軌以外的配樂,上傳後可以在平台上加音樂。
+需要 ffmpeg 和 Google Chrome(路徑可用 `CHROME=` 指定)。時間到的音效 `assets/chime.wav` 由 `python3 chime.py assets/chime.wav` 產生(跟電視上 Chime.kt 同一段旋律);頁面裡 `window.AUDIO` 指定什麼時候播。沒有背景音樂,上傳後可以在平台上加。
