@@ -7,7 +7,10 @@ import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { InstallButton } from "@/Install"
 import { AnalyticsCard } from "@/Analytics"
-import { UpdateCard } from "@/Update"
+import { UpdateBanner, UpdateCard } from "@/Update"
+import { NavMenu, usePage } from "@/Nav"
+import { AboutPage } from "@/About"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { colorOf } from "@/lib/colors"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -58,6 +61,9 @@ export default function App() {
   const [remembered, setRemembered] = useState(!!savedPin.get())
   const [busy, setBusy] = useState<string | null>(null)
   const pinRef = useRef<HTMLInputElement>(null)
+  const [page, go] = usePage()
+  // 不在首頁(沒有密碼欄)時按了要密碼的按鈕:跳出輸入密碼的視窗,輸入後接著做
+  const [ask, setAsk] = useState<{ key: string; a: Action } | null>(null)
 
   const refresh = useCallback(async () => {
     try { setState(await getState()); setOffline(false) } catch { setOffline(true) }
@@ -72,9 +78,12 @@ export default function App() {
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis) }
   }, [refresh])
 
-  const run = async (key: string, a: Action) => {
-    const p = pin.replace(/\D/g, "")
-    if (!p) { pinRef.current?.focus(); toast.error("先輸入爸媽密碼"); return false }
+  const run = async (key: string, a: Action, typed?: string): Promise<boolean> => {
+    const p = (typed ?? pin).replace(/\D/g, "")
+    if (!p) {
+      if (pinRef.current) { pinRef.current.focus(); toast.error("先輸入爸媽密碼") } else setAsk({ key, a })
+      return false
+    }
     setBusy(key)
     try {
       const r = await act(p, a)
@@ -87,6 +96,7 @@ export default function App() {
       } else {
         savedPin.set(""); setRemembered(false); setPin("")
         toast.error(r.message)
+        if (!pinRef.current && /密碼不對/.test(r.message)) setAsk({ key, a })
         setTimeout(() => pinRef.current?.focus(), 50)
       }
       return r.ok
@@ -98,9 +108,12 @@ export default function App() {
 
   return (
     <div className="mx-auto min-h-svh max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]">
-      <header className="flex h-8 items-center justify-between text-sm text-muted-foreground">
-        <span className="flex items-center gap-2 font-medium text-foreground">
-          <img src="/logo.svg" alt="" className="size-6 rounded-md" />看電視計時
+      <header className="flex h-11 items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1 font-medium text-foreground">
+          <NavMenu page={page} go={go} version={state?.version} hasUpdate={state?.update.phase === "available"} />
+          <button className="flex items-center gap-2" onClick={() => go("home")}>
+            <img src="/logo.svg" alt="" className="size-7 rounded-md" />看電視計時
+          </button>
         </span>
         <span className="tabular-nums">
           {offline ? "連不到電視" : state ? `v${state.version} · ${state.updatedAt} 更新` : ""}
@@ -108,19 +121,27 @@ export default function App() {
       </header>
 
       {!state ? <Loading offline={offline} onRetry={refresh} /> : (
-        <div className="mt-4 flex flex-col gap-3">
-          <StatusCard
-            state={state} pin={pin} setPin={setPin} pinRef={pinRef} remembered={remembered}
-            forget={() => { savedPin.set(""); setRemembered(false); setPin(""); setTimeout(() => pinRef.current?.focus(), 50) }}
-            busy={busy} run={run}
-          />
-          <TodayCard state={state} />
-          <AnalyticsCard state={state} busy={busy} run={run} />
-          <SettingsCard state={state} busy={busy === "save"} onSave={(s) => run("save", { action: "save", ...s })} onChime={() => run("chime", { action: "chime" })} />
-          <UpdateCard state={state} busy={busy} run={run} />
-          <InstallButton />
+        <div className="mt-3 flex flex-col gap-3">
+          {page === "home" && <>
+            <UpdateBanner state={state} onOpen={() => go("update")} />
+            <StatusCard
+              state={state} pin={pin} setPin={setPin} pinRef={pinRef} remembered={remembered}
+              forget={() => { savedPin.set(""); setRemembered(false); setPin(""); setTimeout(() => pinRef.current?.focus(), 50) }}
+              busy={busy} run={run}
+            />
+            <TodayCard state={state} />
+            <InstallButton />
+          </>}
+          {page === "analytics" && <AnalyticsCard state={state} busy={busy} run={run} />}
+          {page === "settings" && <>
+            <SettingsCard state={state} busy={busy === "save"} onSave={(s) => run("save", { action: "save", ...s })} onChime={() => run("chime", { action: "chime" })} />
+            <InstallButton />
+          </>}
+          {page === "update" && <UpdateCard state={state} busy={busy} run={run} />}
+          {page === "about" && <AboutPage version={state.version} />}
         </div>
       )}
+      <PinDialog ask={ask} onClose={() => setAsk(null)} onSubmit={(typed) => { const x = ask; setAsk(null); if (x) run(x.key, x.a, typed) }} />
       <Toaster position="top-center" theme="dark" richColors />
     </div>
   )
@@ -371,5 +392,26 @@ function Field({ id, label, hint, error, children }: { id: string; label: string
       {children}
       {hint && <p id={`${id}-hint`} className={cn("text-xs", error ? "text-destructive" : "text-muted-foreground")}>{hint}</p>}
     </div>
+  )
+}
+
+/** 在別的頁面按了要密碼的按鈕時跳出來 */
+function PinDialog({ ask, onClose, onSubmit }: { ask: unknown; onClose: () => void; onSubmit: (pin: string) => void }) {
+  const [v, setV] = useState("")
+  useEffect(() => { if (ask) setV("") }, [ask])
+  return (
+    <Dialog open={!!ask} onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent>
+        <form onSubmit={(e) => { e.preventDefault(); if (v.trim()) onSubmit(v) }} className="grid gap-4">
+          <DialogHeader>
+            <DialogTitle>輸入爸媽密碼</DialogTitle>
+            <DialogDescription>輸入一次,這支手機就會記住</DialogDescription>
+          </DialogHeader>
+          <Input autoFocus value={v} onChange={(e) => setV(e.target.value)} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={8}
+            className="h-12 text-lg tracking-[0.3em] [-webkit-text-security:disc]" aria-label="爸媽密碼" />
+          <DialogFooter><Button type="submit" size="lg" className="h-12 w-full">確定</Button></DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

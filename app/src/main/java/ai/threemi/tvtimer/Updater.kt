@@ -49,11 +49,16 @@ object Updater {
 
   private val busy get() = _status.value.phase in setOf("checking", "downloading", "installing", "confirm")
 
-  /** 問 GitHub 最新版(會等結果,給手機頁馬上顯示) */
-  fun check(): Status {
+  /**
+   * 問 GitHub 最新版(會等結果,給手機頁馬上顯示)。
+   * quiet = 電視自己定時檢查:只是為了讓手機頁出現「有新版」提示,不會自己更新;
+   * 連不上就安靜放棄,不蓋掉畫面上的狀態
+   */
+  fun check(quiet: Boolean = false): Status {
     if (busy) return _status.value
-    _status.value = Status("checking")
-    _status.value = runCatching {
+    val before = _status.value
+    if (!quiet) _status.value = Status("checking")
+    val result = runCatching {
       val json = JSONObject(get(BuildConfig.UPDATE_URL))
       val tag = json.getString("tag_name").removePrefix("v")
       val asset = json.optJSONArray("assets")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }
@@ -67,7 +72,9 @@ object Updater {
         newer(tag, BuildConfig.VERSION_NAME) && apkUrl != null -> Status("available", tag, notes)
         else -> Status("latest", tag)
       }
-    }.getOrElse { Status("failed", message = "連不到 GitHub,電視有連上網路嗎?") }
+    }.getOrElse { if (quiet) before else Status("failed", message = "連不到 GitHub,電視有連上網路嗎?") }
+    // 背景檢查時如果手機剛好按了更新,不要蓋掉進度
+    if (!(quiet && busy)) _status.value = result
     return _status.value
   }
 

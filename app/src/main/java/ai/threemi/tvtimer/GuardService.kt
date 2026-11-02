@@ -56,6 +56,11 @@ class GuardService : Service() {
     })
     server = ParentServer(this, BuildConfig.PARENT_PORT) { chime.playSample() }.also { it.start() }
 
+    // 開機 1 分鐘後、之後每 6 小時問一次 GitHub 有沒有新版(只提示,不自己裝)
+    scope.launch(Dispatchers.IO) {
+      delay(60_000)
+      while (true) { Updater.check(quiet = true); delay(6 * 60 * 60_000L) }
+    }
     // 更新等確認時要收起鎖定畫面,確認完(或放棄)再蓋回去
     scope.launch { Updater.status.collectLatest { overlays.render(Store.state.value) } }
     scope.launch {

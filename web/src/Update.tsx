@@ -60,3 +60,19 @@ export function UpdateCard({ state, busy, run }: { state: TvState; busy: string 
     </Card>
   )
 }
+
+/** 首頁最上面:有新版時提示,點一下到更新頁 */
+export function UpdateBanner({ state, onOpen }: { state: TvState; onOpen: () => void }) {
+  if (state.update.phase !== "available") return null
+  return (
+    <button onClick={onOpen}
+      className="flex w-full items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left">
+      <span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-75" /><span className="relative size-2.5 rounded-full bg-red-500" /></span>
+      <span className="flex-1">
+        <span className="block font-semibold">有新版 {state.update.latest}</span>
+        <span className="block text-sm text-muted-foreground">目前是 {state.version},點這裡看更新內容</span>
+      </span>
+      <span className="rounded-lg bg-red-500 px-3 py-1.5 text-sm font-semibold text-white">更新</span>
+    </button>
+  )
+}
