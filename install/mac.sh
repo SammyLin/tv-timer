@@ -151,14 +151,15 @@ do_install() {
 
   say "安裝 App(大約 10~30 秒)"
   local out a
-  out=$(adb_t 120 -s "$TARGET" install -r "$DIR/tv-timer.apk" 2>&1)
+  # -i:把 App 登記成自己的安裝者,之後爸媽可以用手機按「更新」
+  out=$(adb_t 120 -s "$TARGET" install -r -i "$PKG" "$DIR/tv-timer.apk" 2>&1)
   if printf '%s' "$out" | grep -q "UPDATE_INCOMPATIBLE"; then
     printf '\n電視上已經有一個「看電視計時」,但它是用別的方式裝的,沒辦法直接更新。\n'
     printf '要先刪掉舊的再裝新的。注意:舊的設定(爸媽密碼、小孩名字、看了多久)會一起清掉。\n'
     a=$(ask "要刪掉舊的、裝新的嗎?請輸入 y 再按 Enter(其他鍵取消):")
     if [ "$a" != y ] && [ "$a" != Y ]; then fail "已取消,電視上的舊版沒有動"; fi
     adb_t 60 -s "$TARGET" uninstall "$PKG" >/dev/null 2>&1
-    out=$(adb_t 120 -s "$TARGET" install "$DIR/tv-timer.apk" 2>&1)
+    out=$(adb_t 120 -s "$TARGET" install -i "$PKG" "$DIR/tv-timer.apk" 2>&1)
   fi
   if ! printf '%s' "$out" | grep -q "^Success"; then
     case "$out" in
@@ -170,7 +171,12 @@ $out" ;;
   ok "裝好了"
 
   say "打開權限、啟動 App"
+  # 全新安裝時 -i 不會生效,要再覆蓋裝一次才登記得上
+  if ! adb_t 10 -s "$TARGET" shell dumpsys package "$PKG" 2>/dev/null | grep -q "installerPackageName=$PKG"; then
+    adb_t 120 -s "$TARGET" install -r -i "$PKG" "$DIR/tv-timer.apk" >/dev/null 2>&1
+  fi
   adb_t 10 -s "$TARGET" shell appops set "$PKG" SYSTEM_ALERT_WINDOW allow >/dev/null 2>&1 || fail "開權限失敗,請再貼一次安裝指令"
+  adb_t 10 -s "$TARGET" shell appops set "$PKG" REQUEST_INSTALL_PACKAGES allow >/dev/null 2>&1
   adb_t 10 -s "$TARGET" shell am start -n "$PKG/.MainActivity" >/dev/null 2>&1
   adb_t 5 disconnect "$TARGET" >/dev/null 2>&1
   ok "完成了!"
@@ -178,7 +184,7 @@ $out" ;;
   printf '\n\033[1m🎉 安裝完成\033[0m\n'
   printf '電視畫面最下面一行有「爸媽手機網址」和「初始爸媽密碼」,請拍照或記下來。\n'
   printf '用手機(連家裡 Wi-Fi)打開那個網址,第一次進去請先改掉密碼。\n'
-  printf '之後要更新 App,再貼一次同一行安裝指令就好。\n\n'
+  printf '之後要更新 App:爸媽手機頁「設定」裡按「檢查更新」,或再貼一次同一行安裝指令。\n\n'
 }
 
 do_reset_pin() {

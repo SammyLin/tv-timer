@@ -158,7 +158,8 @@ function DoInstall {
   $t = $script:Target
 
   Say "安裝 App(大約 10~30 秒)"
-  $out = AdbRun -s $t install -r $Apk
+  # -i:把 App 登記成自己的安裝者,之後爸媽可以用手機按「更新」
+  $out = AdbRun -s $t install -r -i $Pkg $Apk
   if ($out -match "UPDATE_INCOMPATIBLE") {
     Write-Host ""
     Write-Host "電視上已經有一個「看電視計時」,但它是用別的方式裝的,沒辦法直接更新。"
@@ -166,7 +167,7 @@ function DoInstall {
     $a = Read-Host "要刪掉舊的、裝新的嗎?請輸入 y 再按 Enter(其他鍵取消)"
     if (-not (IsYes $a)) { Fail "已取消,電視上的舊版沒有動" }
     AdbRun -s $t uninstall $Pkg | Out-Null
-    $out = AdbRun -s $t install $Apk
+    $out = AdbRun -s $t install -i $Pkg $Apk
   }
   if ($out -notmatch "(?m)^Success") {
     if ($out -match "INSUFFICIENT_STORAGE") { Fail "電視的空間不夠,請刪掉一些用不到的 App 再試一次" }
@@ -175,7 +176,10 @@ function DoInstall {
   Ok "裝好了"
 
   Say "打開權限、啟動 App"
+  # 全新安裝時 -i 不會生效,要再覆蓋裝一次才登記得上
+  if ((AdbRun -s $t shell dumpsys package $Pkg) -notmatch "installerPackageName=$Pkg") { AdbRun -s $t install -r -i $Pkg $Apk | Out-Null }
   AdbRun -s $t shell appops set $Pkg SYSTEM_ALERT_WINDOW allow | Out-Null
+  AdbRun -s $t shell appops set $Pkg REQUEST_INSTALL_PACKAGES allow | Out-Null
   AdbRun -s $t shell am start -n "$Pkg/.MainActivity" | Out-Null
   AdbRun disconnect $t | Out-Null
   Ok "完成了!"
@@ -184,7 +188,7 @@ function DoInstall {
   Write-Host "🎉 安裝完成" -ForegroundColor White
   Write-Host "電視畫面最下面一行有「爸媽手機網址」和「初始爸媽密碼」,請拍照或記下來。"
   Write-Host "用手機(連家裡 Wi-Fi)打開那個網址,第一次進去請先改掉密碼。"
-  Write-Host "之後要更新 App,再貼一次同一行安裝指令就好。"
+  Write-Host "之後要更新 App:爸媽手機頁「設定」裡按「檢查更新」,或再貼一次同一行安裝指令。"
   Write-Host ""
 }
 

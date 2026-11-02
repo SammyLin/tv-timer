@@ -56,6 +56,8 @@ class GuardService : Service() {
     })
     server = ParentServer(this, BuildConfig.PARENT_PORT) { chime.playSample() }.also { it.start() }
 
+    // 更新等確認時要收起鎖定畫面,確認完(或放棄)再蓋回去
+    scope.launch { Updater.status.collectLatest { overlays.render(Store.state.value) } }
     scope.launch {
       var wasWatching: Boolean? = null
       Store.state.collectLatest {

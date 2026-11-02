@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只有 debug 版:測試自己更新時用電腦上的 http 假伺服器 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:usesCleartextTraffic="true" />
+</manifest>

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Toaster } from "@/components/ui/sonner"
 import { InstallButton } from "@/Install"
 import { AnalyticsCard } from "@/Analytics"
+import { UpdateCard } from "@/Update"
 import { colorOf } from "@/lib/colors"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -98,8 +99,12 @@ export default function App() {
   return (
     <div className="mx-auto min-h-svh max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]">
       <header className="flex h-8 items-center justify-between text-sm text-muted-foreground">
-        <span>看電視計時 · 客廳</span>
-        <span className="tabular-nums">{offline ? "連不到電視" : state ? `${state.updatedAt} 更新` : ""}</span>
+        <span className="flex items-center gap-2 font-medium text-foreground">
+          <img src="/logo.svg" alt="" className="size-6 rounded-md" />看電視計時
+        </span>
+        <span className="tabular-nums">
+          {offline ? "連不到電視" : state ? `v${state.version} · ${state.updatedAt} 更新` : ""}
+        </span>
       </header>
 
       {!state ? <Loading offline={offline} onRetry={refresh} /> : (
@@ -112,6 +117,7 @@ export default function App() {
           <TodayCard state={state} />
           <AnalyticsCard state={state} busy={busy} run={run} />
           <SettingsCard state={state} busy={busy === "save"} onSave={(s) => run("save", { action: "save", ...s })} onChime={() => run("chime", { action: "chime" })} />
+          <UpdateCard state={state} busy={busy} run={run} />
           <InstallButton />
         </div>
       )}

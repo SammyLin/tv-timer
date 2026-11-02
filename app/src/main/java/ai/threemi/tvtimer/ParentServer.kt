@@ -20,6 +20,7 @@ import kotlin.concurrent.thread
  *  - 畫面是 web/(React + shadcn/ui)打包到 assets/web 的檔案,這裡直接送出去
  *  - GET  /api/state  目前狀態(不用密碼,只有看)
  *  - GET  /api/history  每天的觀看紀錄(不用密碼,只有看)
+ *  - GET  /api/update/check  問 GitHub 有沒有新版(不用密碼;真的要更新是 POST /api/do update-install)
  *  - POST /api/do     {pin, action, ...} 同意不限制、加時間、停止、改設定;回 {ok, message, state}
  * 只在家裡網路上,密碼連錯 5 次鎖 10 分鐘(避免小孩用手機亂猜)。
  */
@@ -69,6 +70,7 @@ class ParentServer(private val context: Context, private val port: Int, private 
 
     when {
       path == "/api/state" -> json(stateJson())
+      path == "/api/update/check" -> json(Updater.check().toJson())
       path == "/api/history" -> json(onMain { History.toApiJson(Store.state.value.config.kids) })
       path == "/api/do" && method == "POST" -> {
         val req = runCatching { JSONObject(body) }.getOrDefault(JSONObject())
@@ -150,6 +152,8 @@ class ParentServer(private val context: Context, private val port: Int, private 
         .put("customMinutes", c.customMinutes)
         .put("dailyLimit", c.dailyLimit)
         .put("warnMinutes", c.warnMinutes))
+      .put("version", BuildConfig.VERSION_NAME)
+      .put("update", Updater.status.value.toJson())
       .put("updatedAt", LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))
   }
 
@@ -182,6 +186,7 @@ class ParentServer(private val context: Context, private val port: Int, private 
           Store.addMinutes(min); "加了 $min 分鐘"
         }
         "stop" -> { Store.stop(); "已停止,電視回到選人畫面" }
+        "update-install" -> Updater.install(context)
         "history-clear" -> {
           val date = f.optString("date").takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
           History.clear(date); if (date == null) "已刪除全部觀看紀錄" else "已刪除 $date 的紀錄"

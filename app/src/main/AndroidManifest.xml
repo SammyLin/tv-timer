@@ -11,6 +11,10 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- 爸媽用手機按「更新」時,電視自己下載新版安裝 -->
+  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+  <!-- Android 12+:自己是安裝者時,更新不用在電視上按確認 -->
+  <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
   <application
     android:allowBackup="false"
@@ -57,5 +61,8 @@
         <action android:name="ai.threemi.tvtimer.RESET_PIN" />
       </intent-filter>
     </receiver>
+
+    <!-- 自己更新時 PackageInstaller 回報結果 -->
+    <receiver android:name=".Updater$Receiver" android:exported="false" />
   </application>
 </manifest>

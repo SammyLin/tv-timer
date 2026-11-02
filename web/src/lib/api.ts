@@ -15,6 +15,24 @@ export type TvState = {
     warnMinutes: number
   }
   updatedAt: string
+  /** 電視上 App 的版本 */
+  version: string
+  update: UpdateStatus
+}
+
+/** 手機按「檢查更新 / 更新」後電視的進度 */
+export type UpdateStatus = {
+  phase: "idle" | "checking" | "latest" | "available" | "downloading" | "installing" | "confirm" | "failed"
+  latest: string | null
+  notes: string | null
+  progress: number
+  message: string | null
+}
+
+export async function checkUpdate(): Promise<UpdateStatus> {
+  const r = await fetch("/api/update/check", { cache: "no-store" })
+  if (!r.ok) throw new Error(String(r.status))
+  return r.json()
 }
 
 export type Settings = {
@@ -33,6 +51,7 @@ export type History = { retentionDays: number; retentionChoices: number[]; today
 export type Action =
   | { action: "check" | "approve" | "deny" | "stop" | "unlimited" | "chime" }
   | { action: "history-clear"; date?: string }
+  | { action: "update-install" }
   | { action: "retention"; days: number }
   | { action: "add"; minutes: number }
   | ({ action: "save" } & Settings)

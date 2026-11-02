@@ -33,7 +33,8 @@ class Overlays(private val context: Context) {
     val watching = s.session?.running == true && !s.timeUp && s.pendingApproval == null
     // 計時中一直顯示剩幾分;快到時間(warnMinutes)才變大、變琥珀色、出現秒數
     val timed = watching && s.session!!.unlimited.not()
-    setLock(!watching)
+    // 更新時電視要跳「安裝」確認視窗,鎖定畫面先收起來才按得到
+    setLock(!watching && Updater.status.value.phase != "confirm")
     setChip(timed)
   }
 
