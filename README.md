@@ -53,13 +53,26 @@ tv-timer puts the decision on the screen itself:
 
 | | |
 |---|---|
-| ![TV: continue last time](docs/tv-resume.png) | ![TV: a parent scans to approve "no limit"](docs/tv-approval.png) |
-| **TV after standby:** continue with the minutes left | **"No limit":** the parent scans the QR code to approve |
+| ![TV: who is watching and for how long](docs/tv-picker.png) | ![TV: continue last time](docs/tv-resume.png) |
+| **Picker:** the TV opens on "who, and for how long" | **After standby:** continue with the minutes left |
+| ![TV: a parent scans to approve "no limit"](docs/tv-approval.png) | ![TV: time's up](docs/tv-timeup.png) |
+| **"No limit":** a parent scans the QR code to approve | **Time's up:** a short tune plays and the TV locks |
 
-<p align="center"><img src="docs/phone-approve.png" alt="Parent phone page: approve no limit" width="300" />&nbsp;&nbsp;<img src="docs/phone-watching.png" alt="Parent phone page: watching, 25 minutes left" width="300" /></p>
-<p align="center"><b>Parent phone page:</b> approve or decline; add time while they watch</p>
+![TV color themes](docs/tv-themes.png)
+<p align="center"><b>Six TV color themes</b>, switched from the phone</p>
 
-> Names in the screenshots are sample data.
+<p align="center">
+  <img src="docs/phone-watching.png" alt="Parent phone page: watching" width="230" />&nbsp;
+  <img src="docs/phone-approve.png" alt="Parent phone page: approve no limit" width="230" />&nbsp;
+  <img src="docs/phone-analytics.png" alt="Parent phone page: viewing history" width="230" />
+</p>
+<p align="center">
+  <img src="docs/phone-themes.png" alt="Parent phone page: TV themes" width="230" />&nbsp;
+  <img src="docs/phone-menu.png" alt="Parent phone page: menu" width="230" />
+</p>
+<p align="center"><b>Parent phone page:</b> status at a glance, approve "no limit", per-kid limits ("no TV this week"), viewing history, themes, one-tap updates</p>
+
+> Names in the screenshots are sample data. The mascot is "小電" (Little TV).
 
 ## How it works
 

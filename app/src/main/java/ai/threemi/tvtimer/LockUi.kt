@@ -358,10 +358,14 @@ private fun Approval(code: String) {
         Spacer(Modifier.height(10.dp))
         Text("手機要連家裡的 Wi-Fi", style = Body.copy(color = T.Faint))
         Spacer(Modifier.height(36.dp))
-        Secondary("取消", Modifier.focusRequester(first)) { Store.cancelApproval() }
+        // 小電放在「取消」旁邊,不要擠到文字(電視只有 960dp 寬)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Secondary("取消", Modifier.focusRequester(first)) { Store.cancelApproval() }
+          Spacer(Modifier.width(36.dp))
+          Image(painterResource(R.drawable.tvbot_phone), null, Modifier.size(150.dp))
+        }
       }
-      Image(painterResource(R.drawable.tvbot_phone), null, Modifier.size(210.dp))
-      Spacer(Modifier.width(20.dp))
+      Spacer(Modifier.width(24.dp))
       Image(qr.asImageBitmap(), "爸媽同意用的 QR code", Modifier.size(340.dp).clip(T.Card).background(Color.White).padding(18.dp))
     }
   }

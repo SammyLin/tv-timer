@@ -45,13 +45,26 @@ tv-timer 把決定放在電視畫面上:
 
 | | |
 |---|---|
-| ![電視:繼續上次](tv-resume.png) | ![電視:不限制要爸媽掃 QR code](tv-approval.png) |
-| **電視待機後再打開:** 剩下的分鐘接著用 | **「不限制」:** 爸媽掃 QR code 同意 |
+| ![電視:選誰、看多久](tv-picker.png) | ![電視:繼續上次](tv-resume.png) |
+| **選人畫面:** 打開電視先選誰看、看多久 | **待機後再打開:** 剩下的分鐘接著用 |
+| ![電視:不限制要爸媽掃 QR code](tv-approval.png) | ![電視:時間到](tv-timeup.png) |
+| **「不限制」:** 爸媽手機掃 QR code 同意 | **時間到:** 播一段音樂、鎖起來,小電抱著鬧鐘提醒 |
 
-<p align="center"><img src="phone-approve.png" alt="爸媽手機頁:同意不限制" width="300" />&nbsp;&nbsp;<img src="phone-watching.png" alt="爸媽手機頁:計時中還剩 25 分" width="300" /></p>
-<p align="center"><b>爸媽手機頁:</b>同意或不同意;看的時候可以加時間</p>
+![電視配色:暖黑、深夜藍、森林綠、純白、奶茶、馬卡龍](tv-themes.png)
+<p align="center"><b>電視配色:</b>6 種,手機點一下電視馬上換</p>
 
-> 截圖裡的名字都是範例資料。
+<p align="center">
+  <img src="phone-watching.png" alt="爸媽手機頁:看電視中" width="230" />&nbsp;
+  <img src="phone-approve.png" alt="爸媽手機頁:等你同意" width="230" />&nbsp;
+  <img src="phone-analytics.png" alt="爸媽手機頁:觀看分析" width="230" />
+</p>
+<p align="center">
+  <img src="phone-themes.png" alt="爸媽手機頁:電視配色" width="230" />&nbsp;
+  <img src="phone-menu.png" alt="爸媽手機頁:側邊選單" width="230" />
+</p>
+<p align="center"><b>爸媽手機頁:</b>一眼看狀態、同意不限制、每個小孩另外設上限(這週不能看)、觀看分析、換配色、手機更新</p>
+
+> 截圖裡的名字都是範例資料。吉祥物是「小電」。
 
 ## 架構
 
