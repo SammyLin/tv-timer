@@ -13,10 +13,11 @@ import kotlin.math.pow
 import kotlin.math.sin
 
 /**
- * 時間到的音效:10 秒輕快的木琴旋律,程式即時合成(不用放音檔)。
+ * 時間到的音效:10 秒輕快的木琴旋律(程式即時合成),一開始同時疊上語音提醒
+ * 「時間到了,讓眼睛休息一下」(res/raw/timeup_voice.wav,44.1kHz 單聲道 16-bit)。
  * 播之前先搶「音訊焦點」,YouTube 之類的 App 會因此暫停,不會在鎖定畫面後面繼續出聲。
  */
-class Chime(context: Context) {
+class Chime(private val context: Context) {
   private val audio = context.getSystemService(AudioManager::class.java)
   private val attrs = AudioAttributes.Builder()
     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -28,6 +29,9 @@ class Chime(context: Context) {
     .build()
   private var track: AudioTrack? = null
   private var holding = false
+
+  /** 木琴 + 語音混好的音效 */
+  private val pcm: ShortArray by lazy { mix(chime, runCatching { readVoice(context) }.getOrNull()) }
 
   /** 讓正在播的影片停下來(鎖起來時用),一直拿著直到 release() */
   fun hush() {
@@ -72,6 +76,9 @@ class Chime(context: Context) {
     /** 音量(0~1),之前 0.8 太大聲 */
     private const val VOLUME = 0.32f
 
+    /** 語音音量(0~1,語音最大聲的地方),比木琴大一點才聽得清楚 */
+    private const val VOICE_VOLUME = 0.7f
+
     /** 旋律:相對 C5 的半音數,null 是休止;每格 0.16 秒,蹦蹦跳跳的五聲音階,一句約 2.9 秒 */
     private val melody: List<Pair<Int?, Int>> = listOf(
       4 to 1, 7 to 1, 12 to 1, null to 1, 9 to 1, 7 to 1, 4 to 2,
@@ -79,8 +86,8 @@ class Chime(context: Context) {
     )
     private const val BEAT = 0.16
 
-    /** 木琴音色的旋律重複到 10 秒,最後一秒淡出 */
-    private val pcm: ShortArray by lazy {
+    /** 木琴音色的旋律重複到 10 秒,最後一秒淡出(-VOLUME~VOLUME) */
+    private val chime: FloatArray by lazy {
       val n = (RATE * SECONDS).toInt()
       val out = FloatArray(n)
       var t0 = 0.0
@@ -106,10 +113,37 @@ class Chime(context: Context) {
       }
       val peak = out.maxOf { abs(it) }
       val fadeFrom = n - RATE
-      ShortArray(n) { k ->
+      FloatArray(n) { k ->
         val fade = if (k > fadeFrom) (n - k).toFloat() / RATE else 1f
-        (out[k] / peak * fade * VOLUME * Short.MAX_VALUE).toInt().toShort()
+        out[k] / peak * fade * VOLUME
       }
+    }
+
+    /** 讀 WAV 的 data 區塊,轉成 -1~1;找不到就回 null(只放木琴) */
+    private fun readVoice(context: Context): FloatArray? {
+      val bytes = context.resources.openRawResource(R.raw.timeup_voice).use { it.readBytes() }
+      val buf = java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+      var i = 12 // 跳過 "RIFF" + 長度 + "WAVE"
+      while (i + 8 <= bytes.size) {
+        val id = String(bytes, i, 4, Charsets.US_ASCII)
+        val size = buf.getInt(i + 4)
+        if (id == "data") {
+          val count = minOf(size, bytes.size - i - 8) / 2
+          return FloatArray(count) { k -> buf.getShort(i + 8 + k * 2) / 32768f }
+        }
+        i += 8 + size + (size and 1)
+      }
+      return null
+    }
+
+    /** 語音從第 0 秒疊在木琴上,最大聲的地方調到 VOICE_VOLUME */
+    private fun mix(chime: FloatArray, voice: FloatArray?): ShortArray {
+      val out = chime.copyOf()
+      if (voice != null && voice.isNotEmpty()) {
+        val gain = VOICE_VOLUME / voice.maxOf { abs(it) }.coerceAtLeast(1e-4f)
+        for (k in 0 until minOf(voice.size, out.size)) out[k] += voice[k] * gain
+      }
+      return ShortArray(out.size) { k -> (out[k].coerceIn(-1f, 1f) * Short.MAX_VALUE).toInt().toShort() }
     }
   }
 }
