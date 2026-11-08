@@ -25,6 +25,8 @@ data class Config(
   val theme: String = Theme.DEFAULT,
   /** 個別小孩的每日上限(蓋過 dailyLimit),例如這週某個小孩不能看 */
   val kidLimits: Map<String, KidLimit> = emptyMap(),
+  /** 定時鎖定之後,隔天幾點自動恢復(0~12 點) */
+  val unlockHour: Int = 6,
 ) {
   /**
    * 這個小孩今天的上限(分鐘):null = 不限、0 = 不能看。
@@ -59,7 +61,18 @@ data class State(
   val pendingApproval: String? = null,
   /** 今天每個人已經看了幾毫秒 */
   val watchedToday: Map<String, Long> = emptyMap(),
-)
+  /** 爸媽設的一次性「幾點鎖定電視」(epoch 毫秒),到了就變成 nightUntil */
+  val lockAt: Long? = null,
+  /** 定時鎖定中,鎖到這個時間(epoch 毫秒);這段時間小孩不能自己選人看,要爸媽在手機解除 */
+  val nightUntil: Long? = null,
+) {
+  /** 現在還可以看多久:計時剩的時間和離定時鎖定的時間,取比較短的;都沒有就是 null */
+  fun leftMs(now: Long = System.currentTimeMillis()): Long? {
+    val timed = session?.takeIf { !it.unlimited }?.remainingMs
+    val toLock = lockAt?.let { (it - now).coerceAtLeast(0) }
+    return listOfNotNull(timed, toLock).minOrNull()
+  }
+}
 
 object Store {
   private lateinit var prefs: SharedPreferences
@@ -70,7 +83,11 @@ object Store {
     if (::prefs.isInitialized) return
     prefs = context.applicationContext.getSharedPreferences("tvtimer", Context.MODE_PRIVATE)
     if (!prefs.contains("pin")) prefs.edit().putString("pin", "%04d".format(Random.nextInt(10000))).apply()
-    _state.value = State(loadConfig(), loadSession(), watchedToday = loadWatched(loadConfig().kids))
+    _state.value = State(
+      loadConfig(), loadSession(), watchedToday = loadWatched(loadConfig().kids),
+      lockAt = prefs.getLong("lock_at", 0).takeIf { it > 0 },
+      nightUntil = prefs.getLong("night_until", 0).takeIf { it > 0 },
+    )
     History.init(context)
     Theme.apply(_state.value.config.theme)
   }
@@ -109,6 +126,7 @@ object Store {
           KidLimit(v.getInt("minutes"), v.optString("until").ifEmpty { null })
         }
       } ?: emptyMap(),
+      unlockHour = prefs.getInt("unlock_hour", d.unlockHour),
     )
   }
 
@@ -124,6 +142,7 @@ object Store {
       .putString("kid_limits", JSONObject().apply {
         c.kidLimits.forEach { (k, v) -> put(k, JSONObject().put("minutes", v.minutes).put("until", v.until ?: "")) }
       }.toString())
+      .putInt("unlock_hour", c.unlockHour)
       .apply()
     _state.value = _state.value.copy(config = c, watchedToday = loadWatched(c.kids))
   }
@@ -157,6 +176,9 @@ object Store {
     val new = f(old)
     _state.value = new
     if (old.session != new.session) saveSession(new.session)
+    if (old.lockAt != new.lockAt || old.nightUntil != new.nightUntil) {
+      prefs.edit().putLong("lock_at", new.lockAt ?: 0).putLong("night_until", new.nightUntil ?: 0).apply()
+    }
     // 不再計時了(停止、暫停、時間到):觀看紀錄馬上存檔
     if (old.session?.running == true && new.session?.running != true) History.flush()
   }
@@ -165,8 +187,9 @@ object Store {
     it.copy(session = Session(kids, false, minutes * 60_000L, true), timeUp = false, pendingApproval = null)
   }
 
+  /** 不限制(爸媽同意或在手機上開的),定時鎖定中也會一起解除 */
   fun startUnlimited(kids: List<String>) = update {
-    it.copy(session = Session(kids, true, 0, true), timeUp = false, pendingApproval = null)
+    it.copy(session = Session(kids, true, 0, true), timeUp = false, pendingApproval = null, nightUntil = null)
   }
 
   fun resume() = update { s -> s.copy(session = s.session?.copy(running = true), timeUp = false) }
@@ -182,7 +205,8 @@ object Store {
   fun addMinutes(min: Int) = update { s ->
     val cur = s.session
     val next = if (cur == null || cur.unlimited) cur else cur.copy(remainingMs = cur.remainingMs + min * 60_000L, running = true)
-    s.copy(session = next ?: Session(emptyList(), false, min * 60_000L, true), timeUp = false)
+    // 爸媽從手機加時間:定時鎖定中也一起解除
+    s.copy(session = next ?: Session(emptyList(), false, min * 60_000L, true), timeUp = false, nightUntil = null)
   }
 
   fun dismissTimeUp() = update { it.copy(timeUp = false) }
@@ -206,6 +230,46 @@ object Store {
     // 不限制的剩餘時間不會變,要另外蓋時間戳,App 更新時才知道「剛剛還在看」
     _state.value.session?.takeIf { it.unlimited && it.running }?.let { saveSession(it) }
     return ended
+  }
+
+  // ---- 定時鎖定(一次性) ----
+
+  fun scheduleLock(at: Long) = update { it.copy(lockAt = at) }
+
+  fun cancelScheduledLock() = update { it.copy(lockAt = null) }
+
+  /** 爸媽在手機按「解除」:回到選人畫面 */
+  fun unlockNight() = update { it.copy(nightUntil = null) }
+
+  /**
+   * 每秒呼叫一次:到了 lockAt 就鎖起來,一直鎖到隔天 unlockHour 點;過了 nightUntil 就恢復。
+   * 回傳這次是不是剛好鎖住正在看的電視(要播時間到的音效)
+   */
+  fun checkSchedule(now: Long = System.currentTimeMillis()): Boolean {
+    var lockedWhileWatching = false
+    update { s ->
+      when {
+        s.lockAt != null && now >= s.lockAt -> {
+          val until = nextHour(s.lockAt, s.config.unlockHour)
+          lockedWhileWatching = s.session?.running == true
+          // 電視關著錯過了,而且早就過了恢復時間:直接當作沒這回事
+          if (now >= until) s.copy(lockAt = null)
+          else s.copy(lockAt = null, nightUntil = until, session = null, timeUp = false, pendingApproval = null)
+        }
+        s.nightUntil != null && now >= s.nightUntil -> s.copy(nightUntil = null)
+        else -> s
+      }
+    }
+    return lockedWhileWatching && _state.value.nightUntil != null
+  }
+
+  /** from 之後第一次的 hour:00(本機時區) */
+  private fun nextHour(from: Long, hour: Int): Long {
+    val zone = java.time.ZoneId.systemDefault()
+    val t = java.time.Instant.ofEpochMilli(from).atZone(zone)
+    var at = t.toLocalDate().atTime(hour, 0).atZone(zone)
+    if (!at.isAfter(t)) at = at.plusDays(1)
+    return at.toInstant().toEpochMilli()
   }
 
   // ---- 爸媽同意「不限制」 ----

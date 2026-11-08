@@ -1,11 +1,18 @@
 // 電視上 ParentServer 的 API(app/src/main/java/ai/threemi/tvtimer/ParentServer.kt)
 
-export type Status = "pending" | "timeup" | "locked" | "unlimited" | "watching" | "paused"
+export type Status = "night" | "pending" | "timeup" | "locked" | "unlimited" | "watching" | "paused"
+
+/** 定時鎖定的時間:at 是 epoch 毫秒,time 是 "20:30",day 是「今天」「明天」或 "11/9" */
+export type Schedule = { at: number; time: string; day: string }
 
 export type TvState = {
   status: Status
   who: string[]
   remainingMinutes: number | null
+  /** 爸媽設的一次性「幾點鎖定」;null = 沒設 */
+  lockAt: Schedule | null
+  /** 定時鎖定中,鎖到什麼時候;null = 沒鎖 */
+  nightUntil: Schedule | null
   /** limit:今天的上限(null = 不限、0 = 不能看);override:爸媽替這個小孩另外設的 */
   today: { name: string; minutes: number; limit: number | null; override: KidLimit | null }[]
   config: {
@@ -15,6 +22,8 @@ export type TvState = {
     dailyLimit: number
     warnMinutes: number
     theme: string
+    /** 定時鎖定後隔天幾點恢復 */
+    unlockHour: number
   }
   /** 電視可以選的配色 */
   themes: TvTheme[]
@@ -50,6 +59,7 @@ export type Settings = {
   customMinutes: number
   dailyLimit: number
   warnMinutes: number
+  unlockHour: number
   newPin?: string
 }
 
@@ -58,7 +68,8 @@ export type HistoryDay = { date: string; kids: Record<string, number>; unlimited
 export type History = { retentionDays: number; retentionChoices: number[]; today: string; kids: string[]; days: HistoryDay[] }
 
 export type Action =
-  | { action: "check" | "approve" | "deny" | "stop" | "unlimited" | "chime" }
+  | { action: "check" | "approve" | "deny" | "stop" | "unlimited" | "chime" | "lock-cancel" | "unlock" }
+  | { action: "lock-at"; time: string }
   | { action: "history-clear"; date?: string }
   | { action: "update-install" }
   | { action: "theme"; theme: string }

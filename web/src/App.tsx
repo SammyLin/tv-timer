@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { AlarmClock, BellRing, ChevronDown, Hand, Hourglass, Infinity, Lock, Moon, Pause, Plus, Square, Tv, type LucideIcon } from "lucide-react"
+import { AlarmClock, BedDouble, BellRing, ChevronDown, Clock, Hand, Hourglass, Infinity, Lock, Moon, Pause, Plus, Square, Tv, type LucideIcon } from "lucide-react"
 
 import { act, getState, savedPin, type Action, type Settings, type TvState } from "@/lib/api"
 import { cn } from "@/lib/utils"
@@ -38,6 +38,7 @@ const PHASE: Record<Phase, { label: string; icon: LucideIcon; live: boolean; tex
   paused: { label: "暫停中", icon: Pause, live: false, text: "text-yellow-300", box: "bg-yellow-400/15 border-yellow-400/40", card: "border-yellow-400/50", dot: "bg-yellow-300" },
   locked: { label: "休息中", icon: Moon, live: false, text: "text-zinc-300", box: "bg-zinc-500/15 border-zinc-500/40", card: "border-zinc-600", dot: "bg-zinc-400" },
   timeup: { label: "時間到", icon: AlarmClock, live: false, text: "text-red-400", box: "bg-red-500/15 border-red-500/40", card: "border-red-500/50", dot: "bg-red-400" },
+  night: { label: "定時鎖定", icon: BedDouble, live: false, text: "text-indigo-300", box: "bg-indigo-500/15 border-indigo-500/40", card: "border-indigo-500/50", dot: "bg-indigo-300" },
   pending: { label: "等你同意", icon: Hand, live: true, text: "text-violet-300", box: "bg-violet-500/15 border-violet-500/40", card: "border-violet-500/50", dot: "bg-violet-300" },
 }
 
@@ -47,6 +48,7 @@ const phaseOf = (s: TvState): Phase =>
 function title(s: TvState) {
   const who = s.who.join("、")
   switch (s.status) {
+    case "night": return `電視鎖到${s.nightUntil?.day ?? ""} ${s.nightUntil?.time ?? ""}`
     case "pending": return "小孩想要「不限制」"
     case "timeup": return "時間到了,電視鎖著"
     case "locked": return "電視鎖著,沒有人在看"
@@ -131,6 +133,7 @@ export default function App() {
               forget={() => { savedPin.set(""); setRemembered(false); setPin(""); setTimeout(() => pinRef.current?.focus(), 50) }}
               busy={busy} run={run}
             />
+            <LockAtCard state={state} busy={busy} run={run} />
             <TodayCard state={state} busy={busy} run={run} />
             <InstallButton />
           </>}
@@ -172,10 +175,11 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
 }) {
   const s = state.status
   const p = PHASE[phaseOf(state)]
-  const showLeft = state.remainingMinutes != null && s !== "pending" && s !== "timeup"
+  const showLeft = state.remainingMinutes != null && s !== "pending" && s !== "timeup" && s !== "night"
   const verb = s === "watching" ? "多" : "開放"
-  const canStop = s !== "locked"
+  const canStop = s !== "locked" && s !== "night"
   const sub = {
+    night: "小孩不能自己選人看,要提早看就按「解除」",
     pending: "同意後電視就不限時間",
     unlimited: "停止前電視都可以用",
     locked: "小孩在電視上選人就會開始計時",
@@ -224,7 +228,11 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
           </div>
         )}
 
-        {s === "pending" ? (
+        {s === "night" ? (
+          <Button size="lg" className="h-14 text-base" disabled={!!busy} onClick={() => run("unlock", { action: "unlock" })}>
+            解除鎖定
+          </Button>
+        ) : s === "pending" ? (
           <div className="grid gap-2">
             <Button size="lg" className="h-14 text-base" disabled={!!busy} onClick={() => run("approve", { action: "approve" })}>
               同意不限制
@@ -273,6 +281,57 @@ function StatusCard({ state, pin, setPin, pinRef, remembered, forget, busy, run 
           </AlertDialog>
         </CardFooter>
       )}
+    </Card>
+  )
+}
+
+/** 一次性的「幾點鎖定電視」:到了就鎖到隔天早上,爸媽可以隨時取消或解除 */
+function LockAtCard({ state, busy, run }: { state: TvState; busy: string | null; run: RunFn }) {
+  const lockAt = state.lockAt
+  // 預設一小時後的整點/半點
+  const suggest = () => {
+    const d = new Date(Date.now() + 60 * 60_000)
+    d.setMinutes(d.getMinutes() < 30 ? 30 : 60, 0, 0)
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
+  const [time, setTime] = useState(lockAt?.time ?? suggest)
+  const [editing, setEditing] = useState(false)
+  if (state.status === "night") return null
+
+  const set = async () => { if (await run("lock-at", { action: "lock-at", time })) setEditing(false) }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Clock className="size-5 text-indigo-300" />定時鎖定</CardTitle>
+        <CardDescription>
+          {lockAt && !editing
+            ? `時間到就鎖到隔天早上 ${state.config.unlockHour}:00,小孩不能自己再選人看`
+            : "設一次就好,到了鎖到隔天早上;明天不會重複"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {lockAt && !editing ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="flex items-baseline gap-2">
+              <span className="text-muted-foreground">{lockAt.day}</span>
+              <span className="text-4xl font-bold tabular-nums text-indigo-300">{lockAt.time}</span>
+              <span className="text-muted-foreground">鎖定</span>
+            </p>
+            <div className="flex shrink-0 gap-1">
+              <Button variant="ghost" className="h-11" disabled={!!busy} onClick={() => { setTime(lockAt.time); setEditing(true) }}>改時間</Button>
+              <Button variant="ghost" className="h-11 text-destructive hover:text-destructive" disabled={!!busy}
+                onClick={() => run("lock-cancel", { action: "lock-cancel" })}>取消</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Input type="time" aria-label="鎖定時間" className="h-12 flex-1 text-lg tabular-nums" value={time} onChange={(e) => setTime(e.target.value)} />
+            <Button size="lg" className="h-12 px-6 text-base" disabled={!!busy || !time} onClick={set}>設定</Button>
+            {editing && <Button variant="ghost" className="h-12" onClick={() => setEditing(false)}>不改了</Button>}
+          </div>
+        )}
+      </CardContent>
     </Card>
   )
 }
@@ -329,13 +388,15 @@ function SettingsCard({ state, busy, onSave, onChime }: { state: TvState; busy: 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
     kids: c.kids.join("、"), presets: c.presets.join("、"),
-    customMinutes: String(c.customMinutes), dailyLimit: String(c.dailyLimit), warnMinutes: String(c.warnMinutes), newPin: "",
+    customMinutes: String(c.customMinutes), dailyLimit: String(c.dailyLimit), warnMinutes: String(c.warnMinutes),
+    unlockHour: String(c.unlockHour), newPin: "",
   })
   // 收起來時跟著電視上的設定走;打開編輯時不覆蓋
   useEffect(() => {
     if (!open) setForm((f) => ({ ...f, kids: c.kids.join("、"), presets: c.presets.join("、"),
-      customMinutes: String(c.customMinutes), dailyLimit: String(c.dailyLimit), warnMinutes: String(c.warnMinutes) }))
-  }, [open, c.kids, c.presets, c.customMinutes, c.dailyLimit, c.warnMinutes])
+      customMinutes: String(c.customMinutes), dailyLimit: String(c.dailyLimit), warnMinutes: String(c.warnMinutes),
+      unlockHour: String(c.unlockHour) }))
+  }, [open, c.kids, c.presets, c.customMinutes, c.dailyLimit, c.warnMinutes, c.unlockHour])
 
   const split = (v: string) => v.split(/[、,,\s]+/).map((x) => x.trim()).filter(Boolean)
   const pinBad = form.newPin !== "" && !/^\d{4,8}$/.test(form.newPin)
@@ -348,6 +409,7 @@ function SettingsCard({ state, busy, onSave, onChime }: { state: TvState; busy: 
       customMinutes: Number(form.customMinutes) || c.customMinutes,
       dailyLimit: Number(form.dailyLimit) || 0,
       warnMinutes: Number(form.warnMinutes) || 0,
+      unlockHour: Math.min(12, Math.max(0, Number(form.unlockHour) || 0)),
       newPin: form.newPin || undefined,
     })
     if (ok) { setForm((f) => ({ ...f, newPin: "" })); setOpen(false) }
@@ -386,6 +448,9 @@ function SettingsCard({ state, busy, onSave, onChime }: { state: TvState; busy: 
             </div>
             <Field id="daily" label="每人每天最多幾分鐘" hint="填 0 就不限">
               <Input id="daily" className="h-11" type="number" inputMode="numeric" value={form.dailyLimit} onChange={set("dailyLimit")} />
+            </Field>
+            <Field id="unlock" label="定時鎖定後,隔天幾點恢復" hint="0~12 點">
+              <Input id="unlock" className="h-11" type="number" inputMode="numeric" min={0} max={12} value={form.unlockHour} onChange={set("unlockHour")} />
             </Field>
             <Field id="newpin" label="新的爸媽密碼" hint={pinBad ? "要 4~8 位數字" : "4~8 位數字,不改就留空"} error={pinBad}>
               <Input id="newpin" className="h-11 tracking-[0.3em]" inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={8}

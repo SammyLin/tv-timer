@@ -21,7 +21,7 @@ import kotlin.concurrent.thread
  *  - GET  /api/state  目前狀態(不用密碼,只有看)
  *  - GET  /api/history  每天的觀看紀錄(不用密碼,只有看)
  *  - GET  /api/update/check  問 GitHub 有沒有新版(不用密碼;真的要更新是 POST /api/do update-install)
- *  - POST /api/do     {pin, action, ...} 同意不限制、加時間、停止、改設定;回 {ok, message, state}
+ *  - POST /api/do     {pin, action, ...} 同意不限制、加時間、停止、定時鎖定、改設定;回 {ok, message, state}
  * 只在家裡網路上,密碼連錯 5 次鎖 10 分鐘(避免小孩用手機亂猜)。
  */
 class ParentServer(private val context: Context, private val port: Int, private val testChime: () -> Unit) {
@@ -135,6 +135,7 @@ class ParentServer(private val context: Context, private val port: Int, private 
     val c = s.config
     val session = s.session
     val status = when {
+      s.nightUntil != null -> "night"
       s.pendingApproval != null -> "pending"
       s.timeUp -> "timeup"
       session == null -> "locked"
@@ -146,6 +147,8 @@ class ParentServer(private val context: Context, private val port: Int, private 
       .put("status", status)
       .put("who", JSONArray(session?.kids ?: emptyList<String>()))
       .put("remainingMinutes", session?.takeIf { !it.unlimited }?.let { (it.remainingMs + 59_999) / 60_000 } ?: JSONObject.NULL)
+      .put("lockAt", s.lockAt?.let { schedule(it) } ?: JSONObject.NULL)
+      .put("nightUntil", s.nightUntil?.let { schedule(it) } ?: JSONObject.NULL)
       .put("today", JSONArray(c.kids.map { k ->
         val o = c.kidLimits[k]?.takeIf { it.activeOn(java.time.LocalDate.now().toString()) }
         JSONObject().put("name", k).put("minutes", (s.watchedToday[k] ?: 0) / 60_000)
@@ -158,11 +161,21 @@ class ParentServer(private val context: Context, private val port: Int, private 
         .put("customMinutes", c.customMinutes)
         .put("dailyLimit", c.dailyLimit)
         .put("warnMinutes", c.warnMinutes)
-        .put("theme", c.theme))
+        .put("theme", c.theme)
+        .put("unlockHour", c.unlockHour))
       .put("themes", Theme.toJson())
       .put("version", BuildConfig.VERSION_NAME)
       .put("update", Updater.status.value.toJson())
       .put("updatedAt", LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))
+  }
+
+  /** 定時鎖定的時間給手機看:{at: epoch 毫秒, time: "20:30", day: "今天"/"明天"} */
+  private fun schedule(at: Long): JSONObject {
+    val zone = java.time.ZoneId.systemDefault()
+    val t = java.time.Instant.ofEpochMilli(at).atZone(zone)
+    val days = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(zone), t.toLocalDate())
+    return JSONObject().put("at", at).put("time", t.format(DateTimeFormatter.ofPattern("HH:mm")))
+      .put("day", when (days) { 0L -> "今天"; 1L -> "明天"; else -> t.format(DateTimeFormatter.ofPattern("M/d")) })
   }
 
   // ---------------- 動作 ----------------
@@ -194,6 +207,19 @@ class ParentServer(private val context: Context, private val port: Int, private 
           Store.addMinutes(min); "加了 $min 分鐘"
         }
         "stop" -> { Store.stop(); "已停止,電視回到選人畫面" }
+        "lock-at" -> {
+          // "HH:mm";已經過了就是明天的這個時間
+          val time = runCatching { LocalTime.parse(f.optString("time")) }.getOrNull() ?: return@onMain "時間格式不對"
+          val zone = java.time.ZoneId.systemDefault()
+          val now = java.time.ZonedDateTime.now(zone)
+          var at = now.toLocalDate().atTime(time).atZone(zone)
+          if (!at.isAfter(now)) at = at.plusDays(1)
+          Store.scheduleLock(at.toInstant().toEpochMilli())
+          val day = if (at.toLocalDate() == now.toLocalDate()) "今天" else "明天"
+          "$day ${time.format(DateTimeFormatter.ofPattern("HH:mm"))} 會鎖定電視"
+        }
+        "lock-cancel" -> { Store.cancelScheduledLock(); "已取消定時鎖定" }
+        "unlock" -> { Store.unlockNight(); "已解除,電視回到選人畫面" }
         "kid-limit" -> {
           val kid = f.optString("kid")
           if (kid !in s.config.kids) return@onMain "沒有這個小孩"
@@ -238,6 +264,7 @@ class ParentServer(private val context: Context, private val port: Int, private 
             presets = presets?.ifEmpty { null }?.take(3) ?: s.config.presets,
             dailyLimit = f.optInt("dailyLimit", s.config.dailyLimit).coerceIn(0, 1440),
             warnMinutes = f.optInt("warnMinutes", s.config.warnMinutes).coerceIn(0, 30),
+            unlockHour = f.optInt("unlockHour", s.config.unlockHour).coerceIn(0, 12),
           ))
           if (newPin.isNotEmpty()) Store.markSetupShown()
           if (newPin.isNotEmpty()) "設定已儲存,密碼已換成新的" else "設定已儲存"

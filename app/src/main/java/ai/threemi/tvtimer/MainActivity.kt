@@ -74,7 +74,8 @@ class MainActivity : ComponentActivity() {
         if (session != null && session.running) {
           Text(session.kids.joinToString("、").ifEmpty { "全家" } + " 正在看", color = T.Text, fontSize = 44.sp, fontWeight = FontWeight.SemiBold)
           Text(
-            if (session.unlimited) "不限制" else "還剩 ${(session.remainingMs + 59_999) / 60_000} 分",
+            // 定時鎖定比較早到的話,顯示離鎖定還有多久
+            s.leftMs()?.let { "還剩 ${(it + 59_999) / 60_000} 分" } ?: "不限制",
             color = if (session.unlimited) T.Muted else T.Amber, fontSize = 30.sp, fontWeight = FontWeight.SemiBold,
           )
           Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {

@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
  *  - 計時中每秒扣時間,剩 warnMinutes 分鐘在角落提醒,時間到再鎖起來
  *  - 電視關掉(待機)就暫停,下次開機可以「繼續上次」
  *  - 時間到播 10 秒木琴音效,鎖起來時讓後面的影片暫停
+ *  - 爸媽設了「幾點鎖定」,到了就鎖到隔天早上(Store.checkSchedule)
  *  - 開一個小網頁給爸媽手機用(同意不限制、加時間、改設定)
  */
 class GuardService : Service() {
@@ -83,6 +84,7 @@ class GuardService : Service() {
         val now = SystemClock.elapsedRealtime()
         Store.rolloverIfNeeded()
         if (Store.tick(now - last)) chime.playTimeUp()
+        if (Store.checkSchedule()) chime.playTimeUp()
         last = now
       }
     }

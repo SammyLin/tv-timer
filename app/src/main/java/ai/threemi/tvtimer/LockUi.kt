@@ -98,6 +98,7 @@ fun LockScreen() {
   val s by Store.state.collectAsState()
   Box(Modifier.fillMaxSize().background(T.Ground).padding(horizontal = Edge, vertical = 28.dp)) {
     when {
+      s.nightUntil != null -> NightLock(s.nightUntil!!)
       s.timeUp -> TimeUp(s)
       s.pendingApproval != null -> Approval(s.pendingApproval!!)
       else -> Picker(s)
@@ -339,6 +340,28 @@ private fun TimeUp(s: State) {
   }
 }
 
+// ---------------- 定時鎖定(爸媽在手機設的幾點鎖定) ----------------
+
+@Composable
+private fun NightLock(until: Long) {
+  val back = remember(until) {
+    java.time.Instant.ofEpochMilli(until).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(DateTimeFormatter.ofPattern("H:mm"))
+  }
+  Column(Modifier.fillMaxSize()) {
+    TopBar()
+    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+      Column(Modifier.weight(1f)) {
+        Text("今天的電視時間結束了", style = H1, maxLines = 1)
+        Spacer(Modifier.height(14.dp))
+        Text("明天早上 $back 再來看哦。", style = Lead.copy(color = T.Muted))
+        Spacer(Modifier.height(10.dp))
+        Text("要提早看,請爸媽用手機解除", style = Body.copy(color = T.Faint))
+      }
+      Image(painterResource(R.drawable.tvbot_wave), null, Modifier.size(300.dp))
+    }
+  }
+}
+
 // ---------------- 等爸媽同意 ----------------
 
 @Composable
@@ -398,7 +421,7 @@ private fun CustomMinutes(start: Int, onDone: (Int) -> Unit) {
 @Composable
 fun CountdownChip() {
   val s by Store.state.collectAsState()
-  val ms = s.session?.remainingMs ?: 0
+  val ms = s.leftMs() ?: 0
   val sec = (ms / 1000).toInt()
   val urgent = ms <= s.config.warnMinutes * 60_000L
   // 疊在影片上:亮色配色的淺底在暗畫面上看不清楚,改用暖黑那組深色
